@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>ScopeLease 결정 레이어</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="topbar">
+        <div>
+          <h1>ScopeLease 결정 레이어</h1>
+          <p id="repoPath">로컬 저장소를 읽는 중...</p>
+        </div>
+        <div class="actions">
+          <button id="analyzeBtn" type="button">분석</button>
+          <button id="checkpointBtn" type="button">체크포인트</button>
+        </div>
+      </header>
+
+      <section class="status-strip" aria-label="Live repository status">
+        <div class="status-cell live-cell">
+          <span class="live-dot" aria-hidden="true"></span>
+          <span>로컬 실시간 분석</span>
+        </div>
+        <div class="status-cell">
+          <span>위험도</span>
+          <strong id="statusRisk">낮음</strong>
+        </div>
+        <div class="status-cell">
+          <span>변경</span>
+          <strong id="statusChanged">0개 파일</strong>
+        </div>
+        <div class="status-cell">
+          <span>그래프</span>
+          <strong id="statusGraph">0개 노드</strong>
+        </div>
+        <div class="status-cell">
+          <span>갱신</span>
+          <strong id="statusUpdated">-</strong>
+        </div>
+      </section>
+
+      <main class="dashboard">
+        <aside class="timeline-panel">
+          <div class="panel-heading">
+            <h2>변경 흐름</h2>
+            <span id="eventCount">0</span>
+          </div>
+          <ol id="timeline" class="timeline"></ol>
+        </aside>
+
+        <section class="graph-panel">
+          <div class="panel-heading">
+            <div>
+              <h2>영향 그래프</h2>
+              <p id="graphSummary">변경 파일, 심볼, 테스트, 문서, 라우트, 정책을 함께 봅니다.</p>
+            </div>
+            <div id="riskBadge" class="risk low">낮음</div>
+          </div>
+          <div class="graph-legend" aria-label="Graph legend">
+            <span><i class="legend changed"></i>변경</span>
+            <span><i class="legend route"></i>라우트</span>
+            <span><i class="legend evidence"></i>근거</span>
+            <span><i class="legend policy"></i>정책</span>
+          </div>
+          <div class="graph-canvas">
+            <svg id="impactGraph" role="img" aria-label="Local change impact graph"></svg>
+          </div>
+          <div id="nodeDetails" class="node-details">노드를 선택하면 연결 근거를 확인할 수 있습니다.</div>
+        </section>
+
+        <aside class="decision-panel">
+          <div class="panel-heading">
+            <h2>결정 카드</h2>
+          </div>
+          <div id="decisionCard" class="decision-card"></div>
+        </aside>
+
+        <section class="context-panel">
+          <div class="panel-heading">
+            <div>
+              <h2>Agent 입력 후보</h2>
+              <p><code>codexInput.text</code>로 만든 사용자 요청과 KG 근거 후보입니다.</p>
+            </div>
+            <span id="tokenEstimate"></span>
+          </div>
+          <div id="agentInputSummary" class="agent-input-summary"></div>
+          <pre id="contextPack"></pre>
+        </section>
+      </main>
+    </div>
+
+    <script src="/app.js" type="module"></script>
+  </body>
+</html>

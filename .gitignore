@@ -1,0 +1,91 @@
+# Dependencies and package-manager state
+node_modules/
+.pnpm-store/
+.yarn/
+.pnp.*
+.npm/
+.node-gyp/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Repo-local ScopeLease/Codex/Claude runtime state
+.decision/
+.codex/
+.scopelease/
+.claude/
+.mcp.json
+*.local.toml
+
+# Electron/build/package outputs
+dist/
+build/
+out/
+release/
+releases/
+*.asar
+*.dmg
+*.pkg
+*.app/
+*.AppImage
+*.exe
+
+# Generated archives, paper bundles, and release artifacts
+*.zip
+*.tar
+*.tgz
+*.tar.gz
+*.7z
+*.rar
+*.pdf
+*.pptx
+*.docx
+
+# Environment, local secrets, and credentials
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.crt
+*.p12
+*.mobileprovision
+*.api-key
+
+# Logs, caches, coverage, and temporary workspaces
+*.log
+coverage/
+.nyc_output/
+.cache/
+.eslintcache
+.parcel-cache/
+.turbo/
+.next/
+.vite/
+.tmp/
+tmp/
+temp/
+*.tmp
+*.temp
+scopelease-pair-worktrees/
+.scopelease-workspace-scope.json
+
+# Local benchmark/data checkouts
+benchmarks/
+datasets/
+data/
+runs/
+wandb/
+
+# OS/editor noise
+.DS_Store
+__MACOSX/
+.Spotlight-V100/
+.Trashes/
+Thumbs.db
+desktop.ini
+.vscode/
+.idea/
+*.swp
+*.swo

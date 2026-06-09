@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self' http://127.0.0.1:* http://localhost:*; script-src 'self'; style-src 'self' 'unsafe-inline'; frame-src http://127.0.0.1:* http://localhost:*; connect-src http://127.0.0.1:* http://localhost:*;"
+    />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ScopeLease Sidecar</title>
+    <link rel="stylesheet" href="./desktop.css" />
+  </head>
+  <body class="controls-collapsed">
+    <aside class="rail">
+      <header>
+        <div>
+          <p class="eyebrow">ScopeLease</p>
+          <h1>Sidecar</h1>
+        </div>
+        <span id="statusPill" class="pill">starting</span>
+      </header>
+
+      <div class="rail-body">
+        <section class="panel">
+          <label for="repoPath">Repository</label>
+          <div class="repo-row">
+            <input id="repoPath" type="text" readonly />
+            <button id="selectRepo" type="button">Choose</button>
+          </div>
+          <div class="button-grid">
+            <button id="openProject" type="button">Open</button>
+            <button id="attachProject" type="button">Attach MCP</button>
+          </div>
+        </section>
+
+        <section class="panel">
+          <h2>Evidence</h2>
+          <button id="exportEvidence" type="button">Export Bundle</button>
+          <button id="permissionFixtures" type="button">Lease Fixtures</button>
+        </section>
+
+        <section class="panel">
+          <h2>Pair Runs</h2>
+          <button id="pairToken" type="button">Token Pair</button>
+          <button id="pairCodex" type="button">Codex Pair</button>
+          <button id="pairClaude" type="button">Claude Pair</button>
+        </section>
+
+        <section class="panel measurement">
+          <h2>Measurement</h2>
+          <div class="measurement-status">
+            <span>Mode</span>
+            <strong id="measurementStatus">-</strong>
+          </div>
+          <p id="measurementCounts">default/scopelease events 0 · MCP 0</p>
+          <div class="button-grid three">
+            <button id="measurementOn" type="button">On</button>
+            <button id="measurementOff" type="button">Off</button>
+            <button id="measurementRefresh" type="button">Check</button>
+          </div>
+        </section>
+
+        <section class="panel readiness">
+          <h2>Preflight</h2>
+          <ul>
+            <li><span>Node</span><strong id="nodeStatus">-</strong></li>
+            <li><span>Codex</span><strong id="codexStatus">-</strong></li>
+            <li><span>Claude</span><strong id="claudeStatus">-</strong></li>
+            <li><span>Tasks</span><strong id="tasksStatus">-</strong></li>
+          </ul>
+        </section>
+
+        <section class="panel details">
+          <h2>Runtime</h2>
+          <dl>
+            <div>
+              <dt>Port</dt>
+              <dd id="portValue">-</dd>
+            </div>
+            <div>
+              <dt>URL</dt>
+              <dd><button id="openExternal" class="link-button" type="button">-</button></dd>
+            </div>
+            <div>
+              <dt>Output</dt>
+              <dd><button id="revealOutput" class="link-button" type="button">-</button></dd>
+            </div>
+          </dl>
+        </section>
+      </div>
+    </aside>
+
+    <main class="workspace log-hidden">
+      <nav class="topbar">
+        <div>
+          <p class="eyebrow">Optional companion</p>
+          <strong id="viewTitle">Evidence sidecar</strong>
+        </div>
+        <div class="top-actions">
+          <button id="toggleControls" type="button" aria-pressed="false">Controls</button>
+          <button id="reloadFrame" type="button">Reload</button>
+          <button id="cancelCommand" type="button">Cancel</button>
+          <button id="toggleLog" type="button" aria-pressed="false">Log</button>
+        </div>
+      </nav>
+      <iframe id="scopeleaseFrame" title="ScopeLease graph console"></iframe>
+      <section id="logPanel" class="log-panel hidden">
+        <div class="log-title">
+          <span>Command log</span>
+          <span id="lastCommand">idle</span>
+        </div>
+        <pre id="logOutput">Ready.</pre>
+      </section>
+    </main>
+
+    <script src="./renderer.js"></script>
+  </body>
+</html>

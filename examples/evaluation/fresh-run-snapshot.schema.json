@@ -1,0 +1,227 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://scopelease.local/schema/fresh-run-snapshot.schema.json",
+  "title": "ScopeLease Fresh Run Snapshot",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "kind",
+    "snapshotId",
+    "generatedAt",
+    "scopeleaseSource",
+    "environment",
+    "agents",
+    "repos",
+    "tasks",
+    "metricsBoundary",
+    "runs"
+  ],
+  "properties": {
+    "kind": {
+      "const": "scopelease.fresh_run_snapshot"
+    },
+    "snapshotId": {
+      "type": "string",
+      "minLength": 1
+    },
+    "generatedAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "scopeleaseSource": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["commitOrArchive", "dirtyState"],
+      "properties": {
+        "commitOrArchive": { "type": "string" },
+        "dirtyState": { "type": "string" },
+        "notes": { "type": "string" }
+      }
+    },
+    "environment": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": ["os", "node", "networkPolicy", "tokenizer"],
+      "properties": {
+        "os": { "type": "string" },
+        "node": { "type": "string" },
+        "machineClass": { "type": "string" },
+        "networkPolicy": { "type": "string" },
+        "tokenizer": { "type": "string" },
+        "notes": { "type": "string" }
+      }
+    },
+    "agents": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/definitions/agent" }
+    },
+    "benchmarkFamilies": {
+      "type": "array",
+      "items": { "type": "string" },
+      "uniqueItems": true
+    },
+    "repos": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/definitions/repo" }
+    },
+    "tasks": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/definitions/task" }
+    },
+    "metricsBoundary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "primaryUnit",
+        "included",
+        "excluded",
+        "claimRule"
+      ],
+      "properties": {
+        "primaryUnit": {
+          "type": "string",
+          "enum": ["same_work_intent_pair"]
+        },
+        "included": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "excluded": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "claimRule": {
+          "type": "string"
+        }
+      }
+    },
+    "runs": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/definitions/run" }
+    }
+  },
+  "definitions": {
+    "agent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["agentId", "name", "interface", "versionCommand"],
+      "properties": {
+        "agentId": { "type": "string" },
+        "name": { "type": "string" },
+        "interface": {
+          "type": "string",
+          "enum": ["codex_cli", "claude_cli", "desktop_app", "other"]
+        },
+        "versionCommand": { "type": "string" },
+        "plan": { "type": "string" },
+        "notes": { "type": "string" }
+      }
+    },
+    "repo": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["repoId", "pathOrRevision", "role"],
+      "properties": {
+        "repoId": { "type": "string" },
+        "pathOrRevision": { "type": "string" },
+        "role": {
+          "type": "string",
+          "enum": ["target", "benchmark_fixture", "external_open_source"]
+        },
+        "language": { "type": "string" },
+        "sizeClass": { "type": "string" },
+        "notes": { "type": "string" }
+      }
+    },
+    "task": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "taskId",
+        "benchmarkFamily",
+        "category",
+        "persona",
+        "request",
+        "claimAxes"
+      ],
+      "properties": {
+        "taskId": { "type": "string" },
+        "benchmarkFamily": { "type": "string" },
+        "category": { "type": "string" },
+        "persona": { "type": "string" },
+        "request": { "type": "string" },
+        "claimAxes": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "A_task_completion",
+              "B_context_call",
+              "C_permission_delegation",
+              "D_review_boundary",
+              "E_silent_failure",
+              "F_human_supervision",
+              "G_ablation"
+            ]
+          }
+        }
+      }
+    },
+    "run": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "runId",
+        "agentId",
+        "repoId",
+        "taskId",
+        "condition",
+        "pairId",
+        "status"
+      ],
+      "properties": {
+        "runId": { "type": "string" },
+        "agentId": { "type": "string" },
+        "repoId": { "type": "string" },
+        "taskId": { "type": "string" },
+        "condition": {
+          "type": "string",
+          "enum": ["C0", "C1", "C2", "C3"]
+        },
+        "pairId": { "type": "string" },
+        "status": {
+          "type": "string",
+          "enum": ["pass", "fail", "timeout", "incomplete", "invalid"]
+        },
+        "metrics": { "$ref": "#/definitions/metrics" }
+      }
+    },
+    "metrics": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "commandReportedInputTokens": { "type": "number" },
+        "commandReportedTotalTokens": { "type": "number" },
+        "providerBillingTokens": { "type": "number" },
+        "promptTokens": { "type": "number" },
+        "scopeleaseContextTokens": { "type": "number" },
+        "toolCallCount": { "type": "number" },
+        "fileReadCount": { "type": "number" },
+        "permissionPromptCount": { "type": "number" },
+        "leaseHitCount": { "type": "number" },
+        "denyCount": { "type": "number" },
+        "reviewFrontierFiles": { "type": "number" },
+        "missedRequiredFiles": { "type": "number" },
+        "leakedIrrelevantFiles": { "type": "number" },
+        "mergedUnrelatedIntentCount": { "type": "number" },
+        "intentMismatchCount": { "type": "number" },
+        "durationMs": { "type": "number" },
+        "attemptsToPass": { "type": "number" }
+      }
+    }
+  }
+}

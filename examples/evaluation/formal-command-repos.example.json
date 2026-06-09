@@ -1,0 +1,15 @@
+{
+  "description": "Template for report-grade command-reported paired evaluation. Use 10-20 repositories and target at least 100 pairs, for example 13 repositories x 4 tasks x 2 repetitions = 104 pairs. Keep private machine paths in a local .scopelease manifest instead of committing them.",
+  "repos": [
+    {
+      "label": "repo-a",
+      "path": "/absolute/path/to/repo-a",
+      "include": true
+    },
+    {
+      "label": "repo-b",
+      "path": "/absolute/path/to/repo-b",
+      "include": true
+    }
+  ]
+}

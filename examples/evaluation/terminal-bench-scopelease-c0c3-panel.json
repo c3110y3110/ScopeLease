@@ -1,0 +1,38 @@
+{
+  "kind": "scopelease.terminal_bench_c0c3_panel_manifest",
+  "version": 1,
+  "boundary": "same_prompt_connected_c0c3_panel_not_provider_billing_not_human_study",
+  "datasetPath": ".scopelease/benchmarks/terminal-bench/original-tasks",
+  "agentImportPath": "codex_oauth_scopelease_agent:CodexOauthScopeLeaseAgent",
+  "model": "openai/gpt-5.5",
+  "agentVersion": "latest",
+  "conditions": ["C0", "C1", "C2", "C3"],
+  "taskSelectionRule": "selected public Terminal-Bench panel spanning trivial file creation, data aggregation, C++ compatibility edit, regex/log processing, shell/data processing, parser/file tasks, constraint solving, certificate generation, security payload construction, and async Python implementation; not a general benchmark average",
+  "tasks": [
+    { "taskId": "hello-world", "runSlug": "hello", "family": "smoke", "expectedDifficulty": "easy" },
+    { "taskId": "jsonl-aggregator", "runSlug": "jsonl-aggregator", "family": "data-processing", "expectedDifficulty": "easy" },
+    { "taskId": "cpp-compatibility", "runSlug": "cpp-compatibility", "family": "coding", "expectedDifficulty": "easy" },
+    { "taskId": "regex-log", "runSlug": "regex-log", "family": "regex-log-processing", "expectedDifficulty": "medium" },
+    { "taskId": "log-summary-date-ranges", "runSlug": "log-summary-date-ranges", "family": "log-processing", "expectedDifficulty": "medium" },
+    { "taskId": "simple-sheets-put", "runSlug": "simple-sheets-put", "family": "api-data-operation", "expectedDifficulty": "medium" },
+    { "taskId": "jq-data-processing", "runSlug": "jq-data-processing", "family": "shell-data-processing", "expectedDifficulty": "medium" },
+    { "taskId": "tree-directory-parser", "runSlug": "tree-directory-parser", "family": "parser-file-task", "expectedDifficulty": "medium" },
+    { "taskId": "heterogeneous-dates", "runSlug": "heterogeneous-dates", "family": "file-data-processing", "expectedDifficulty": "easy" },
+    { "taskId": "assign-seats", "runSlug": "assign-seats", "family": "constraint-solving", "expectedDifficulty": "easy" },
+    { "taskId": "openssl-selfsigned-cert", "runSlug": "openssl-selfsigned-cert", "family": "security-system-command", "expectedDifficulty": "medium" },
+    { "taskId": "cancel-async-tasks", "runSlug": "cancel-async-tasks", "family": "software-engineering-async", "expectedDifficulty": "hard" }
+  ],
+  "claimBoundary": {
+    "canClaim": [
+      "Completion and Codex CLI command-reported token totals for this selected panel.",
+      "Whether ScopeLease C1/C2/C3 can be attached without mutating the Terminal-Bench prompt.",
+      "Observed overhead or savings for this selected panel only."
+    ],
+    "cannotClaim": [
+      "Provider billing reduction.",
+      "Human fatigue, trust, or review-time reduction.",
+      "General official Terminal-Bench benchmark improvement.",
+      "General token saving across public benchmarks."
+    ]
+  }
+}

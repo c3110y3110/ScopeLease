@@ -1,0 +1,264 @@
+{
+  "kind": "scopelease.evidence_manifest",
+  "generatedAt": "2026-06-03T12:39:33.806Z",
+  "repo": "<repo-root>",
+  "outputDir": ".scopelease/reports/delegation-control-source-of-truth-20260528",
+  "invocation": "node src/cli.js delegation-report . --tasks examples/evaluation/patent-paper-review-frontier-tasks.jsonl --product-wide-summary examples/evaluation/frozen-evidence/formal-command-100pair-mini-20260521-133429/product-wide-summary.json --max-frontier-files 24 --output .scopelease/reports/delegation-control-source-of-truth-20260528",
+  "boundary": "frozen local evidence manifest; hashes identify inputs and generated report files for this run",
+  "evaluationConfig": {
+    "repo": "<repo-root>",
+    "tasksPath": "examples/evaluation/patent-paper-review-frontier-tasks.jsonl",
+    "productWideSummaryPath": "examples/evaluation/frozen-evidence/formal-command-100pair-mini-20260521-133429/product-wide-summary.json",
+    "budget": 8000,
+    "baselineMode": null,
+    "maxReviewFiles": null,
+    "maxFrontierFiles": 24,
+    "maxTerms": null,
+    "noReview": false,
+    "noAblation": false,
+    "boundary": "reported_values_are_valid_for_this_configuration_only"
+  },
+  "evidenceSources": {
+    "tasks": {
+      "path": "examples/evaluation/patent-paper-review-frontier-tasks.jsonl"
+    },
+    "productWide": {
+      "type": "frozen_product_wide_summary",
+      "path": "examples/evaluation/frozen-evidence/formal-command-100pair-mini-20260521-133429/product-wide-summary.json",
+      "generatedAt": "2026-05-21T08:55:41.847Z",
+      "status": "claim_ready",
+      "commandReported": {
+        "measuredRepoCount": 13,
+        "measuredPairCount": 102,
+        "savedPercent": 64
+      }
+    },
+    "reviewFrontier": {
+      "type": "fresh_review_bench",
+      "measuredTasks": 23,
+      "passedTasks": 23,
+      "failedTasks": 0
+    },
+    "permissionFixture": {
+      "type": "latest_permission_fixture",
+      "path": ".scopelease/fixtures/runs/permission-20260603T123105Z/summary.json",
+      "passed": 12,
+      "failed": 0
+    },
+    "controlledAblation": {
+      "type": "fresh_controlled_ablation",
+      "boundary": "controlled_task_manifest_ablation_not_live_agent_execution",
+      "taskCount": 23,
+      "rowCount": 92
+    }
+  },
+  "claimMetricBoundaries": {
+    "commandReportedTotalTokens": {
+      "status": "claim_ready",
+      "canClaim": "named command-reported total token delta for the frozen same-workIntent protocol",
+      "cannotClaim": [
+        "provider/API billing reduction",
+        "hidden prompt or reasoning token reduction",
+        "natural Codex full-workspace baseline",
+        "human workload or review-time reduction"
+      ],
+      "evidence": {
+        "measuredRepos": 13,
+        "measuredPairs": 102,
+        "savedPercent": 64
+      }
+    },
+    "observedAgentVisiblePairs": {
+      "status": "insufficient_real_use_observed_pairs",
+      "canClaim": "insufficient for product-wide live average savings",
+      "cannotClaim": [
+        "controlled prompt protocol as live default-agent behavior",
+        "auto-promoted same-run pairs as independent lanes",
+        "provider billing"
+      ],
+      "evidence": {
+        "measuredRepos": 0,
+        "measuredPairs": 0,
+        "savedPercent": null
+      }
+    },
+    "reviewFrontierProxy": {
+      "status": "proxy_ready",
+      "canClaim": "controlled candidate file/tool-call surface reduction with recall, leakage, merge, and intent checks",
+      "cannotClaim": [
+        "actual provider token savings",
+        "human review-time reduction",
+        "natural agent retrieval behavior"
+      ],
+      "evidence": {
+        "measuredTasks": 23,
+        "fileReductionPercent": 69,
+        "roughFileReadTokenReductionPercent": 61,
+        "toolCallProxyReductionPercent": 69,
+        "criticalRecallPercent": 100,
+        "medianFirstCriticalRank": 1
+      }
+    },
+    "permissionFixture": {
+      "status": "fixture_ready",
+      "canClaim": "fixture-level guard/deny/ask, signed lease issuance, lease reuse, and false-allow/false-block accounting",
+      "cannotClaim": [
+        "human fatigue reduction",
+        "real-world security guarantee",
+        "universal sandboxing without host-routed enforcement"
+      ],
+      "evidence": {
+        "total": 12,
+        "passed": 12,
+        "failed": 0,
+        "passRate": 100,
+        "humanPrompts": 4,
+        "leaseHits": 1,
+        "denied": 6,
+        "confusion": {
+          "boundary": "fixture-level expected-vs-actual guard verdict matrix; not a human safety study",
+          "matrix": {
+            "allow_with_log": {
+              "allow_with_log": 2,
+              "ask_once": 0,
+              "deny": 0
+            },
+            "ask_once": {
+              "allow_with_log": 0,
+              "ask_once": 4,
+              "deny": 0
+            },
+            "deny": {
+              "allow_with_log": 0,
+              "ask_once": 0,
+              "deny": 6
+            }
+          },
+          "counts": {
+            "expectedAllow": 2,
+            "expectedAsk": 4,
+            "expectedDeny": 6,
+            "actualAllow": 2,
+            "actualAsk": 4,
+            "actualDeny": 6,
+            "correctAllow": 2,
+            "correctAsk": 4,
+            "correctDeny": 6,
+            "unsafeFalseAllow": 0,
+            "falseBlock": 0,
+            "falseDeny": 0,
+            "falseAsk": 0,
+            "mismatches": 0
+          },
+          "mismatchRows": []
+        }
+      }
+    },
+    "providerBilling": {
+      "status": "insufficient_provider_usage_pairs",
+      "canClaim": "no provider billing savings claim",
+      "cannotClaim": [
+        "billing savings from command-reported or proxy token deltas"
+      ]
+    },
+    "humanOutcomes": {
+      "status": "planned_not_claim_ready",
+      "canClaim": "human-study protocol only",
+      "cannotClaim": [
+        "fatigue reduction",
+        "trust calibration improvement",
+        "perceived control improvement",
+        "review-time reduction"
+      ]
+    }
+  },
+  "sourceFiles": [
+    {
+      "relativePath": "examples/evaluation/patent-paper-review-frontier-tasks.jsonl",
+      "sha256": "f68e1fc33710a43e1541a56e52a75a909932603600fd85debde2597f9001227d",
+      "bytes": 19923,
+      "mtime": "2026-06-02T14:26:11.532Z"
+    },
+    {
+      "relativePath": "examples/evaluation/frozen-evidence/formal-command-100pair-mini-20260521-133429/product-wide-summary.json",
+      "sha256": "a12b5a0e80df4d5f7197a96617de6695f9e8fb00aa5111ffc5a83036a785a99e",
+      "bytes": 1714617,
+      "mtime": "2026-06-02T09:27:52.633Z"
+    },
+    {
+      "relativePath": ".scopelease/fixtures/runs/permission-20260603T123105Z/summary.json",
+      "sha256": "0c1e931c8708ed39395c8e20762ec9988544bd097bb69ad8e76ce3c0e5cc9c34",
+      "bytes": 151070,
+      "mtime": "2026-06-03T12:31:13.226Z"
+    },
+    {
+      "relativePath": "package.json",
+      "sha256": "7379268e0a8fc01aef36048316b9eb421b49454dae5fdeab64ad409840ce12b3",
+      "bytes": 3294,
+      "mtime": "2026-06-03T12:29:33.840Z"
+    },
+    {
+      "relativePath": "package-lock.json",
+      "sha256": "fa4623af9ceaa8b1c1be5ad2bf34b0007788fbc12c6fd8acd13cc323afd086d5",
+      "bytes": 77534,
+      "mtime": "2026-05-11T11:41:16.940Z"
+    },
+    {
+      "relativePath": "src/core/delegation-report.js",
+      "sha256": "c94fbb2886863173ed745f4dd5bc68e56abf91e08f3e9faa270b64b981fc6fa1",
+      "bytes": 39471,
+      "mtime": "2026-06-02T17:07:54.179Z"
+    },
+    {
+      "relativePath": "src/core/review-bench.js",
+      "sha256": "5017fc241073cb19edc0991aa14737574eb18abf97fe54954350948b753518fd",
+      "bytes": 43679,
+      "mtime": "2026-06-02T05:43:29.330Z"
+    },
+    {
+      "relativePath": "src/core/evidence-export.js",
+      "sha256": "f1ba3120e59e66b7cf8079351657d0ef5a6fd502799f48b6f883d69cfa14c210",
+      "bytes": 95443,
+      "mtime": "2026-05-31T11:52:45.298Z"
+    },
+    {
+      "relativePath": "src/core/ablation-runner.js",
+      "sha256": "5440460dbd917257784fd7eab2cce75e0b2c3af2e8ee72e4014f2813d7994c37",
+      "bytes": 11242,
+      "mtime": "2026-05-30T11:17:16.257Z"
+    },
+    {
+      "relativePath": "src/core/approval-lease.js",
+      "sha256": "ba20bcb35991905185096bb9bbb06bcb220429e9293c68ce672bc45c5528fe36",
+      "bytes": 16720,
+      "mtime": "2026-06-02T09:45:25.973Z"
+    },
+    {
+      "relativePath": "src/core/enforcer.js",
+      "sha256": "eb14e8a4768e3a440cce4aee0073c14e8d7b27e548d68d19ae177ccd8d17f076",
+      "bytes": 9943,
+      "mtime": "2026-06-03T10:53:00.799Z"
+    }
+  ],
+  "reportFiles": [
+    {
+      "relativePath": ".scopelease/reports/delegation-control-source-of-truth-20260528/delegation-control-report.json",
+      "sha256": "8c2be986d32fb92d3b8e5a0ea74a1af00b5543b4d048ddbdda24b34faa4b41de",
+      "bytes": 637041,
+      "mtime": "2026-06-03T12:31:26.891Z"
+    },
+    {
+      "relativePath": ".scopelease/reports/delegation-control-source-of-truth-20260528/delegation-control-report.md",
+      "sha256": "be5c4c45b1d6794b6297e7279d11708ea558612283adca08eecf86b21dc42e26",
+      "bytes": 6757,
+      "mtime": "2026-06-03T12:31:26.892Z"
+    }
+  ],
+  "manifestPath": ".scopelease/reports/delegation-control-source-of-truth-20260528/evidence-manifest.json",
+  "sourceOfTruthRules": [
+    "Use this manifest with delegation-control-report.json for current local evidence.",
+    "Do not mix older report directories or stale docs into current numeric claims.",
+    "Token/call claims remain separated by command-reported, observed-agent-visible, review-proxy, and provider-billing sources.",
+    "Human outcome claims remain planned until participant data exists."
+  ]
+}

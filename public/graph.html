@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>ScopeLease Graph View</title>
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="/graph.css?v=scopelease-final-user-v10" />
+  </head>
+  <body>
+    <main class="graph-shell">
+      <header class="hud scopelease-window">
+        <div>
+          <strong>ScopeLease Impact</strong>
+          <span id="repoLabel">저장소 읽는 중...</span>
+        </div>
+        <div id="workStatus" class="work-status">readPlan · avoidPlan · traceLedger</div>
+        <div class="hud-stats">
+          <span id="riskLabel" class="risk low">낮음</span>
+          <span id="graphCount">0 nodes / 0 edges</span>
+          <span id="activityLabel" class="activity-label">실시간 대기</span>
+          <span id="updatedLabel">-</span>
+          <button type="button" class="scope-toggle" data-scope-toggle aria-pressed="false" title="전체 저장 KG 보기">전체 KG</button>
+        </div>
+      </header>
+
+      <section id="resultFrame" class="result-frame kg-window">
+        <strong>Workspace</strong>
+        <span>프로젝트 목록을 기다리는 중...</span>
+      </section>
+
+      <nav class="graph-controls" aria-label="Graph display controls">
+        <button type="button" data-panel-toggle="left" aria-pressed="true" title="Workspace 패널 숨기기">Workspace</button>
+        <button type="button" data-panel-toggle="right" aria-pressed="true" title="ScopeLease 패널 숨기기">ScopeLease</button>
+      </nav>
+
+      <svg id="graphCanvas" aria-label="ScopeLease knowledge graph"></svg>
+
+      <aside id="decisionPanel" class="decision-panel scopelease-window">
+        <strong>ScopeLease</strong>
+        <span>분석 결과를 기다리는 중입니다.</span>
+      </aside>
+    </main>
+
+    <script src="/graph-view.js?v=scopelease-final-user-v10" type="module"></script>
+  </body>
+</html>
