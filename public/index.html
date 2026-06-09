@@ -1,51 +1,63 @@
 <!doctype html>
-<html lang="ko">
+<html lang="en">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>ScopeLease 결정 레이어</title>
-    <link rel="stylesheet" href="/styles.css" />
+    <title>ScopeLease Decision Layer</title>
+    <link rel="stylesheet" href="/styles.css?v=scopelease-wrap-fix-v1" />
   </head>
   <body>
     <div class="app-shell">
       <header class="topbar">
         <div>
-          <h1>ScopeLease 결정 레이어</h1>
-          <p id="repoPath">로컬 저장소를 읽는 중...</p>
+          <h1>ScopeLease Decision Layer</h1>
+          <p id="repoPath">Reading local repository...</p>
         </div>
         <div class="actions">
-          <button id="analyzeBtn" type="button">분석</button>
-          <button id="checkpointBtn" type="button">체크포인트</button>
+          <div class="language-toggle" role="group" aria-label="Language">
+            <button type="button" data-locale-option="en" aria-pressed="true">EN</button>
+            <button type="button" data-locale-option="ko" aria-pressed="false">한국어</button>
+          </div>
+          <button id="analyzeBtn" type="button">Analyze</button>
+          <button id="checkpointBtn" type="button">Checkpoint</button>
         </div>
       </header>
 
       <section class="status-strip" aria-label="Live repository status">
         <div class="status-cell live-cell">
           <span class="live-dot" aria-hidden="true"></span>
-          <span>로컬 실시간 분석</span>
+          <span>Local live analysis</span>
         </div>
         <div class="status-cell">
-          <span>위험도</span>
-          <strong id="statusRisk">낮음</strong>
+          <span>Risk</span>
+          <strong id="statusRisk">Low</strong>
         </div>
         <div class="status-cell">
-          <span>변경</span>
-          <strong id="statusChanged">0개 파일</strong>
+          <span>Changes</span>
+          <strong id="statusChanged">0 files</strong>
         </div>
         <div class="status-cell">
-          <span>그래프</span>
-          <strong id="statusGraph">0개 노드</strong>
+          <span>Graph</span>
+          <strong id="statusGraph">0 nodes</strong>
         </div>
         <div class="status-cell">
-          <span>갱신</span>
+          <span>Updated</span>
           <strong id="statusUpdated">-</strong>
         </div>
       </section>
 
-      <main class="dashboard">
+      <nav class="view-switcher" aria-label="ScopeLease screen switcher">
+        <button type="button" class="view-tab is-active" data-screen-tab="overview">Overview</button>
+        <button type="button" class="view-tab" data-screen-tab="boundaries">Boundaries</button>
+        <button type="button" class="view-tab" data-screen-tab="decision">Decision</button>
+        <button type="button" class="view-tab" data-screen-tab="evidence">Evidence</button>
+        <button type="button" class="view-tab" data-screen-tab="agent-input">Agent Input</button>
+      </nav>
+
+      <main class="dashboard screen-view is-active" data-screen-view="overview">
         <aside class="timeline-panel">
           <div class="panel-heading">
-            <h2>변경 흐름</h2>
+            <h2>Change Flow</h2>
             <span id="eventCount">0</span>
           </div>
           <ol id="timeline" class="timeline"></ol>
@@ -54,26 +66,26 @@
         <section class="graph-panel">
           <div class="panel-heading">
             <div>
-              <h2>영향 그래프</h2>
-              <p id="graphSummary">변경 파일, 심볼, 테스트, 문서, 라우트, 정책을 함께 봅니다.</p>
+              <h2>Impact Graph</h2>
+              <p id="graphSummary">Changed files, symbols, tests, docs, routes, and policy hits are shown together.</p>
             </div>
-            <div id="riskBadge" class="risk low">낮음</div>
+            <div id="riskBadge" class="risk low">Low</div>
           </div>
           <div class="graph-legend" aria-label="Graph legend">
-            <span><i class="legend changed"></i>변경</span>
-            <span><i class="legend route"></i>라우트</span>
-            <span><i class="legend evidence"></i>근거</span>
-            <span><i class="legend policy"></i>정책</span>
+            <span><i class="legend changed"></i>Changed</span>
+            <span><i class="legend route"></i>Route</span>
+            <span><i class="legend evidence"></i>Evidence</span>
+            <span><i class="legend policy"></i>Policy</span>
           </div>
           <div class="graph-canvas">
             <svg id="impactGraph" role="img" aria-label="Local change impact graph"></svg>
           </div>
-          <div id="nodeDetails" class="node-details">노드를 선택하면 연결 근거를 확인할 수 있습니다.</div>
+          <div id="nodeDetails" class="node-details">Select a node to inspect connected evidence.</div>
         </section>
 
         <aside class="decision-panel">
           <div class="panel-heading">
-            <h2>결정 카드</h2>
+            <h2>Decision Card</h2>
           </div>
           <div id="decisionCard" class="decision-card"></div>
         </aside>
@@ -81,8 +93,8 @@
         <section class="context-panel">
           <div class="panel-heading">
             <div>
-              <h2>Agent 입력 후보</h2>
-              <p><code>codexInput.text</code>로 만든 사용자 요청과 KG 근거 후보입니다.</p>
+              <h2>Agent Input Candidate</h2>
+              <p>User request and KG evidence candidate produced as <code>codexInput.text</code>.</p>
             </div>
             <span id="tokenEstimate"></span>
           </div>
@@ -90,8 +102,94 @@
           <pre id="contextPack"></pre>
         </section>
       </main>
+
+      <section class="showcase-view screen-view" data-screen-view="boundaries">
+        <div class="showcase-heading">
+          <div>
+            <h2>Graph-scoped Boundaries</h2>
+            <p>Read, review, permission, stop, and graph-scope boundaries for the same request.</p>
+          </div>
+          <a href="/graph.html?v=scopelease-local-kg-v1">Open Full KG</a>
+        </div>
+        <div id="boundaryCards" class="metric-grid"></div>
+        <div class="showcase-grid">
+          <article class="showcase-panel">
+            <h3>Read First</h3>
+            <ol id="readPlanList" class="plain-list"></ol>
+          </article>
+          <article class="showcase-panel">
+            <h3>Avoid Scope</h3>
+            <ul id="avoidPlanList" class="plain-list"></ul>
+          </article>
+          <article class="showcase-panel wide">
+            <h3>Graph-query-first Hints</h3>
+            <div id="graphHintList" class="hint-grid"></div>
+          </article>
+        </div>
+      </section>
+
+      <section class="showcase-view screen-view" data-screen-view="decision">
+        <div class="showcase-heading">
+          <div>
+            <h2>Decision And Approval Boundary</h2>
+            <p>Approval owner, allowed actions, blocked actions, and stop/re-ask conditions in one view.</p>
+          </div>
+        </div>
+        <div class="decision-showcase">
+          <article class="decision-hero">
+            <span id="decisionStatusPill" class="status-pill">Waiting</span>
+            <h3 id="decisionHeadline">Waiting for analysis.</h3>
+            <p id="decisionSummary">When the decision card is ready, this view shows what the agent may do and when it must stop.</p>
+          </article>
+          <article class="showcase-panel">
+            <h3>Allowed</h3>
+            <ul id="allowedActionList" class="plain-list"></ul>
+          </article>
+          <article class="showcase-panel">
+            <h3>Blocked</h3>
+            <ul id="blockedActionList" class="plain-list"></ul>
+          </article>
+          <article class="showcase-panel wide">
+            <h3>Stop / Re-ask Conditions</h3>
+            <ul id="stopConditionList" class="plain-list"></ul>
+          </article>
+        </div>
+      </section>
+
+      <section class="showcase-view screen-view" data-screen-view="evidence">
+        <div class="showcase-heading">
+          <div>
+            <h2>Evidence With Claim Boundaries</h2>
+            <p>Each useful result is shown with the boundary of what it can claim.</p>
+          </div>
+        </div>
+        <div id="evidenceCards" class="evidence-grid"></div>
+      </section>
+
+      <section class="showcase-view screen-view" data-screen-view="agent-input">
+        <div class="showcase-heading">
+          <div>
+            <h2>Agent Input Candidate</h2>
+            <p>Inspect the compact contract and read order instead of handing the full graph to the agent.</p>
+          </div>
+        </div>
+        <div class="agent-input-showcase">
+          <article class="showcase-panel">
+            <h3>Input Size</h3>
+            <div id="agentInputMetrics" class="metric-grid compact"></div>
+          </article>
+          <article class="showcase-panel">
+            <h3>Read Order</h3>
+            <ol id="inputOrderList" class="plain-list"></ol>
+          </article>
+          <article class="showcase-panel wide">
+            <h3>Prompt Preview</h3>
+            <pre id="promptPreview" class="prompt-preview"></pre>
+          </article>
+        </div>
+      </section>
     </div>
 
-    <script src="/app.js" type="module"></script>
+    <script src="/app.js?v=scopelease-bilingual-v6" type="module"></script>
   </body>
 </html>

@@ -7,6 +7,8 @@ import {
   mcpContextEventsForRequest
 } from "./savings.js";
 
+const LOCALE_STORAGE_KEY = "scopelease.locale";
+
 const elements = {
   canvas: document.querySelector("#graphCanvas"),
   repoLabel: document.querySelector("#repoLabel"),
@@ -18,12 +20,206 @@ const elements = {
   resultFrame: document.querySelector("#resultFrame"),
   decisionPanel: document.querySelector("#decisionPanel"),
   controls: document.querySelector(".graph-controls"),
+  localeButtons: Array.from(document.querySelectorAll("[data-locale-option]")),
   leftPanelToggle: document.querySelector("[data-panel-toggle='left']"),
   rightPanelToggle: document.querySelector("[data-panel-toggle='right']"),
   scopeToggle: document.querySelector("[data-scope-toggle]")
 };
 
+const UI_TRANSLATION_PAIRS = [
+  ["ScopeLease Graph View", "ScopeLease 그래프 보기"],
+  ["ScopeLease Impact", "ScopeLease 영향"],
+  ["Reading repository...", "저장소 읽는 중..."],
+  ["Language", "언어"],
+  ["Korean", "한국어"],
+  ["Live idle", "실시간 대기"],
+  ["Live connected", "실시간 연결됨"],
+  ["Polling update", "폴링 갱신"],
+  ["Waiting for reconnect", "재연결 대기"],
+  ["Waiting for server reconnect", "서버 재연결 대기"],
+  ["Opening project", "프로젝트 여는 중"],
+  ["Starting project runtime", "프로젝트 런타임 시작 중"],
+  ["Project runtime opened in a new window", "프로젝트 런타임을 새 창에서 열었습니다"],
+  ["Project runtime started", "프로젝트 런타임 시작됨"],
+  ["Project runtime running", "프로젝트 런타임 실행 중"],
+  ["Project action failed", "프로젝트 작업 실패"],
+  ["Workspace", "워크스페이스"],
+  ["ScopeLease", "ScopeLease"],
+  ["Waiting for project inventory...", "프로젝트 목록을 기다리는 중..."],
+  ["Graph display controls", "그래프 표시 컨트롤"],
+  ["Hide Workspace panel", "워크스페이스 패널 숨기기"],
+  ["Show Workspace panel", "워크스페이스 패널 보이기"],
+  ["Hide ScopeLease panel", "ScopeLease 패널 숨기기"],
+  ["Show ScopeLease panel", "ScopeLease 패널 보이기"],
+  ["Show full stored KG", "전체 저장 KG 보기"],
+  ["Show decision paths only", "결정 경로만 보기"],
+  ["Full KG", "전체 KG"],
+  ["Decision KG", "결정 KG"],
+  ["Showing full KG", "전체 KG 표시 중"],
+  ["Showing decision KG", "결정 KG 표시 중"],
+  ["ScopeLease knowledge graph", "ScopeLease 지식 그래프"],
+  ["Waiting for analysis.", "분석 결과를 기다리는 중입니다."],
+  ["Waiting for baseline input", "기준 입력 대기"],
+  ["Final user screen", "최종 사용자 화면"],
+  ["Current request", "이번 요청"],
+  ["Risk judgment", "위험 판단"],
+  ["Delegation judgment", "위임 판단"],
+  ["Input interpretation", "입력 해석"],
+  ["Why it is shown", "표시 이유"],
+  ["Recommendation", "추천"],
+  ["Human should check", "사람이 볼 것"],
+  ["Evaluation signal", "평가 신호"],
+  ["Decide once whether to apply and what scope is allowed.", "적용 여부와 허용 범위를 한 번만 결정합니다."],
+  ["Only delegation scope is shown; no risk interruption.", "위임 범위만 표시하며 위험 인터럽트는 없습니다."],
+  ["No user judgment", "사용자 판단 없음"],
+  ["ScopeLease input", "ScopeLease 입력"],
+  ["agent-visible candidate", "agent-visible 후보"],
+  ["delivery candidate", "전달 후보"],
+  ["Current observation", "이번 관측"],
+  ["Waiting", "대기"],
+  ["Observed", "관측됨"],
+  ["Off", "꺼짐"],
+  ["Pair delta", "Pair delta"],
+  ["Decision needed", "결정 필요"],
+  ["Verdict", "판정"],
+  ["Approval", "승인"],
+  ["Provider/API", "Provider/API"],
+  ["Excluded", "제외"],
+  ["Latest guard", "최신 guard"],
+  ["Active lease", "활성 lease"],
+  ["Authority scope", "권한 범위"],
+  ["Stop condition", "중단 조건"],
+  ["Review frontier", "검토 frontier"],
+  ["Permission frontier", "권한 frontier"],
+  ["Stop frontier", "중단 frontier"],
+  ["Graph scope", "그래프 범위"],
+  ["KG view", "KG 보기"],
+  ["Trace paths", "추적 경로"],
+  ["visible / stored nodes", "표시 / 저장 노드"],
+  ["evidence routes", "근거 경로"],
+  ["Actual file paths", "실제 파일 경로"],
+  ["No KG file nodes", "KG 파일 노드 없음"],
+  ["No KG labels to show", "표시할 KG label 없음"],
+  ["Hub", "허브"],
+  ["Hub projects", "허브 프로젝트"],
+  ["Waiting for Codex workspace inventory", "Codex workspace 목록 대기 중"],
+  ["local effects only", "로컬 효과만"],
+  ["Start", "시작"],
+  ["Open", "열기"],
+  ["running", "실행 중"],
+  ["busy", "사용 중"],
+  ["stopped", "중지됨"],
+  ["unchecked", "미확인"],
+  ["missing", "없음"],
+  ["attached", "연결됨"],
+  ["not attached", "미연결"],
+  ["threads", "스레드"],
+  ["Project local", "프로젝트 로컬"],
+  ["Risk check:", "위험 확인:"],
+  ["recommendation", "추천"],
+  ["Review the whole codebase using the ScopeLease analysis below, and apply needed fixes directly.", "아래 ScopeLease 분석을 기준으로 전체 코드베이스를 검토하고 필요한 수정은 직접 적용합니다."],
+  ["Interpreted as development work, ScopeLease context and authority boundaries preparation request.", "개발 작업으로 해석했고, ScopeLease context와 authority 경계를 준비하려는 요청입니다."],
+  ["This request is preparing ScopeLease context and authority boundaries.", "이 요청은 ScopeLease context와 authority 경계를 준비하는 요청입니다."],
+  ["high repository risk", "높은 저장소 위험"],
+  ["high-risk", "높은 위험"],
+  ["high-risk policy hit", "high-risk 정책 매칭"],
+  ["sensitive path", "민감 경로"],
+  ["Check whether the risk reason matches the actual request intent", "위험 이유가 실제 요청 의도와 맞는지만 확인"],
+  ["if ambiguous, use prepare_only and leave only a draft/evidence", "모호하면 prepare_only로 초안/근거만 남기기"],
+  ["files outside scope, network access, and checkpoints require a new decision", "scope 밖 파일, 네트워크, 체크포인트는 새 판단으로 분리"],
+  ["scope outside files, network, checkpoint and decision require separation", "scope 밖 파일, 네트워크, 체크포인트는 새 판단으로 분리"],
+  ["scope outside file, network, checkpoint and decision require separation", "scope 밖 파일, 네트워크, 체크포인트는 새 판단으로 분리"],
+  ["scope outside 파일, network, checkpoint and decision require separation", "scope 밖 파일, 네트워크, 체크포인트는 새 판단으로 분리"],
+  ["scope outside 파일, network, checkpoint a new decision require separation", "scope 밖 파일, 네트워크, 체크포인트는 새 판단으로 분리"],
+  ["Agent judgment:", "Agent 판단:"],
+  ["Will do:", "수행:"],
+  ["Approval effect:", "승인 효과:"],
+  ["Will not do:", "수행하지 않음:"],
+  ["Blocked until approval", "승인 전 차단"],
+  ["Senior review required", "결정권자 리뷰 필요"],
+  ["Owner review required", "담당자 리뷰 필요"],
+  ["Auto-log allowed", "자동 기록 허용"],
+  ["Audit log", "감사 기록"],
+  ["Apply and checkpoint allowed", "적용 및 체크포인트 가능"],
+  ["Apply allowed, checkpoint separate", "적용 가능, 체크포인트는 별도"],
+  ["Prepare patch only", "초안 작성만 가능"],
+  ["Automated work blocked", "자동 작업 차단"],
+  ["Do not auto-apply before approver review.", "승인권자 리뷰 전에는 자동 적용하지 않습니다."],
+  ["Prepare a patch draft only; senior review is required.", "패치는 초안까지만 만들고 결정권자 리뷰가 필요합니다."],
+  ["Update the checkpoint after owner review.", "담당자 리뷰 후 체크포인트를 갱신합니다."],
+  ["Low-risk changes can be applied with an audit trail.", "낮은 위험 변경은 기록을 남기고 적용할 수 있습니다."],
+  ["Record the change and review when needed.", "변경을 기록하고 필요 시 검토합니다."],
+  ["No agent input to copy", "복사할 agent 입력 없음"],
+  ["Agent input copied", "Agent 입력 복사됨"],
+  ["Browser copy permission unavailable", "브라우저 복사 권한 없음"],
+  ["Path connection failed", "경로 연결 실패"],
+  ["Enter a local folder path that exists, such as /Users/name/project or ~/project.", "존재하는 로컬 폴더 경로를 입력하세요. 예: /Users/name/project 또는 ~/project"],
+  ["Pan applied", "Pan 적용됨"],
+  ["Manual layout applied", "수동 배치 적용됨"],
+  ["Live update applied", "실시간 갱신 적용됨"],
+  ["Initial analysis", "초기 분석"],
+  ["Periodic scan", "주기 스캔"],
+  ["File change", "파일 변경"],
+  ["Root refresh", "루트 새로고침"],
+  ["Root changed", "루트 변경"],
+  ["Manual refresh", "수동 새로고침"],
+  ["State received", "상태 수신"],
+  ["Heartbeat", "Heartbeat"],
+  ["Connected", "연결됨"],
+  ["Idle", "대기"],
+  ["Policy", "정책"],
+  ["Evidence", "근거"],
+  ["Route", "라우트"],
+  ["Function", "함수"],
+  ["Class", "클래스"],
+  ["Type", "타입"],
+  ["Test", "테스트"],
+  ["Document", "문서"],
+  ["Config", "설정"],
+  ["CodeFile", "코드파일"],
+  ["Code", "코드"],
+  ["Changed", "변경"],
+  ["Changed type", "변경 타입"],
+  ["Changed function", "변경 함수"],
+  ["Deleted", "삭제됨"],
+  ["Node", "노드"],
+  ["route path", "라우트 경로"],
+  ["test evidence", "테스트 근거"],
+  ["doc evidence", "문서 근거"],
+  ["policy evidence", "정책 근거"],
+  ["call impact", "호출 영향"],
+  ["dependency", "의존성"],
+  ["defines", "정의"],
+  ["imports", "import"],
+  ["called by", "호출됨"],
+  ["defined by", "정의됨"],
+  ["tests", "테스트"],
+  ["mentions", "언급"],
+  ["policy", "정책"],
+  ["changed file", "변경 파일"],
+  ["imports changed file", "변경 파일을 호출"],
+  ["related test", "관련 테스트"],
+  ["related doc", "관련 문서"],
+  ["KG file node", "KG 파일 노드"],
+  ["No stop conditions yet.", "아직 중단 조건이 없습니다."],
+  ["None yet", "아직 없음"],
+  ["None", "없음"],
+  ["none", "없음"],
+  ["Preparing", "준비 중"],
+  ["signed active", "서명된 활성"],
+  ["candidate", "후보"],
+  ["files", "파일"],
+  ["commands", "명령"],
+  ["default", "기본"],
+  ["stop:", "중단:"],
+  ["plus", "추가"],
+  ["no expiry", "만료 없음"],
+  ["expired", "만료됨"],
+  ["left", "남음"]
+];
+
 let selectedNodeId = null;
+let activeLocale = initialLocale();
 let currentAnalysis = null;
 let pollTimer = null;
 let dragState = null;
@@ -37,8 +233,8 @@ let lastRemoteRenderSignature = "";
 let currentState = null;
 let liveStatus = {
   connected: false,
-  mode: "대기",
-  reason: "시작 전",
+  mode: "idle",
+  reason: "not started",
   at: ""
 };
 
@@ -93,6 +289,13 @@ const panelState = {
 if (isSidecarMode) document.body.classList.add("sidecar-mode");
 
 document.addEventListener("click", (event) => {
+  const localeButton = event.target.closest("[data-locale-option]");
+  if (localeButton) {
+    event.preventDefault();
+    setLocale(localeButton.dataset.localeOption || "en");
+    return;
+  }
+
   const panelToggleButton = event.target.closest("[data-panel-toggle]");
   if (panelToggleButton) {
     event.preventDefault();
@@ -114,7 +317,7 @@ document.addEventListener("click", (event) => {
   }
 });
 
-updateViewControls();
+queueMicrotask(updateViewControls);
 
 async function refresh() {
   try {
@@ -130,11 +333,11 @@ async function refresh() {
     liveStatus = {
       connected: false,
       mode: "reconnect",
-      reason: "서버 대기",
+      reason: "server waiting",
       at: new Date().toISOString()
     };
     updateLiveIndicators();
-    setActivity("서버 재연결 대기", true);
+    setActivity("Waiting for server reconnect", true);
   }
 }
 
@@ -189,7 +392,7 @@ async function handleHubProjectAction(button) {
   const action = button.dataset.hubAction || "start";
   if (!repo) return;
   button.disabled = true;
-  setActivity(action === "open" ? "프로젝트 여는 중" : "프로젝트 런타임 시작 중", true);
+  setActivity(action === "open" ? "Opening project" : "Starting project runtime", true);
   try {
     const response = await fetch(`/api/projects/${action === "open" ? "open" : "start"}`, {
       method: "POST",
@@ -197,17 +400,17 @@ async function handleHubProjectAction(button) {
       body: JSON.stringify({ repo })
     });
     const result = await response.json();
-    if (!response.ok || result.ok === false) throw new Error(result.error || "프로젝트 런타임 처리 실패");
+    if (!response.ok || result.ok === false) throw new Error(result.error || "Project runtime action failed");
     const state = await attachHubProjects(currentState || {}, { health: true, force: true });
     if (currentAnalysis) render(currentAnalysis, "hub_project_update", state);
     if (action === "open" && result.url) {
       const opened = window.open(result.url, "_blank", "noopener,noreferrer");
-      setActivity(opened ? "프로젝트 런타임 새 창 열림" : `프로젝트 런타임 준비됨: ${result.url}`, true);
+      setActivity(opened ? "Project runtime opened in a new window" : `Project runtime ready: ${result.url}`, true);
       return;
     }
-    setActivity(result.started ? "프로젝트 런타임 시작됨" : "프로젝트 런타임 실행 중", true);
+    setActivity(result.started ? "Project runtime started" : "Project runtime running", true);
   } catch (error) {
-    setActivity("프로젝트 처리 실패", true);
+    setActivity("Project action failed", true);
     renderError(String(error.message || error));
   } finally {
     button.disabled = false;
@@ -244,13 +447,14 @@ function render(analysis, eventReason = "render", state = null) {
   elements.graphCount.textContent = `${formatGraphCount(graph, sourceGraph)}${formatLaneMetricSummary(currentLaneMetrics)}`;
   elements.workStatus.textContent = workStatusText(analysis, graph, sourceGraph, agentJudgment);
   elements.workStatus.title = agentJudgmentTitle(agentJudgment) || elements.workStatus.textContent;
-  elements.updatedLabel.textContent = analysis.generatedAt ? new Date(analysis.generatedAt).toLocaleTimeString() : "-";
+  elements.updatedLabel.textContent = analysis.generatedAt ? new Date(analysis.generatedAt).toLocaleTimeString(activeLocale === "ko" ? "ko-KR" : "en-US") : "-";
   updateViewControls();
   renderResultFrame(analysis, graph, sourceGraph, paths);
   renderDecision(analysis);
   drawSvg(graph, positions, analysis, paths, context, eventReason);
   reportLaneMetrics(analysis, graph, currentLaneMetrics, eventReason);
   rememberPositions(positions);
+  applyLocaleToDocument();
   if (remoteUpdate) lastRemoteRenderSignature = remoteSignature;
 }
 
@@ -866,11 +1070,11 @@ function renderResultFrame(analysis, graph, sourceGraph, paths) {
   elements.resultFrame.innerHTML = `
     ${userPanelHeader("Workspace", `${escapeHtml(String(totals.projects || 0))} projects · ${escapeHtml(String(totals.runningProjects || 0))} running`)}
     <div class="user-kpi-grid">
-      <span><b>ScopeLease input</b><strong>${escapeHtml(contextDelta.codexInput || tokenCopy.actualInput)}</strong><em>agent-visible 후보</em></span>
+      <span><b>ScopeLease input</b><strong>${escapeHtml(contextDelta.codexInput || tokenCopy.actualInput)}</strong><em>agent-visible candidate</em></span>
       <span><b>KG view</b><strong>${escapeHtml(overview)}</strong><em>visible / stored nodes</em></span>
-      <span><b>Trace paths</b><strong>${escapeHtml(String((paths || []).length))}</strong><em>근거 경로</em></span>
+      <span><b>Trace paths</b><strong>${escapeHtml(String((paths || []).length))}</strong><em>evidence routes</em></span>
     </div>
-    <div class="user-tag-row">${labels || "<span>표시할 KG label 없음</span>"}</div>
+    <div class="user-tag-row">${labels || "<span>No KG labels to show</span>"}</div>
     ${renderFilePathPanel(sourceGraph, analysis, pack)}
     ${renderHubProjectPanel(currentState)}
   `;
@@ -881,18 +1085,18 @@ function renderFilePathPanel(sourceGraph = {}, analysis = {}, pack = {}) {
   const totalFiles = (sourceGraph.nodes || []).filter((node) => node.path && isFileNode(node)).length;
   if (!candidates.length) return `
     <div class="file-path-panel">
-      <div class="file-path-head"><b>실제 파일 경로</b><span>KG 파일 노드 없음</span></div>
+      <div class="file-path-head"><b>Actual file paths</b><span>No KG file nodes</span></div>
     </div>
   `;
   const rows = candidates.slice(0, 12).map((item) => `
     <div class="file-path-row" title="${escapeHtml(item.path)}">
       ${escapeHtml(item.path)}
-      <em>${escapeHtml(item.reason)}</em>
+      <em>${escapeHtml(displayText(item.reason))}</em>
     </div>
   `).join("");
   return `
     <div class="file-path-panel">
-      <div class="file-path-head"><b>실제 파일 경로</b><span>${escapeHtml(String(candidates.length))}/${escapeHtml(String(totalFiles))} shown</span></div>
+      <div class="file-path-head"><b>Actual file paths</b><span>${escapeHtml(String(candidates.length))}/${escapeHtml(String(totalFiles))} shown</span></div>
       <div class="file-path-list">${rows}</div>
     </div>
   `;
@@ -952,7 +1156,7 @@ function renderHubProjectPanel(state = {}) {
   const totals = hub.totals || {};
   if (!projects.length) return `
     <div class="hub-projects-panel is-empty">
-      <div class="hub-projects-head"><b>Hub</b><span>Codex workspace inventory 대기</span></div>
+      <div class="hub-projects-head"><b>Hub</b><span>Waiting for Codex workspace inventory</span></div>
     </div>
   `;
   const rows = [...projects]
@@ -968,8 +1172,8 @@ function renderHubProjectPanel(state = {}) {
           <span class="hub-status ${escapeHtml(status)}">${escapeHtml(formatHubStatus(status))}</span>
           <strong title="${escapeHtml(project.cwd || "")}">${escapeHtml(compactMiddle(project.name || project.cwd || "-", 28))}</strong>
           <small>${escapeHtml(String(project.codex?.threadRecords || 0))} threads · ${escapeHtml(project.scopelease?.attached ? "attached" : "not attached")}</small>
-          <button type="button" data-hub-action="start" data-hub-repo="${escapeHtml(project.cwd || "")}">시작</button>
-          <button type="button" data-hub-action="open" data-hub-repo="${escapeHtml(project.cwd || "")}">열기</button>
+          <button type="button" data-hub-action="start" data-hub-repo="${escapeHtml(project.cwd || "")}">Start</button>
+          <button type="button" data-hub-action="open" data-hub-repo="${escapeHtml(project.cwd || "")}">Open</button>
         </div>
       `;
     })
@@ -1648,16 +1852,16 @@ function nodeCluster(node, analysis, anchorMap = null) {
   if (viewState.scope === "decision" && anchored) {
     return {
       key: `anchor:${anchored.id}`,
-      label: `기준 ${compactLabel(anchored.path || anchored.label || anchored.id, 24)}`,
+      label: `Anchor ${compactLabel(anchored.path || anchored.label || anchored.id, 24)}`,
       kind: folderKind(folderClusterLabel(anchored.path || anchored.label || ""), anchored)
     };
   }
 
   const visual = nodeVisualClass(node, analysis);
-  if (visual === "policy") return { key: "policy", label: "정책", kind: "policy" };
-  if (visual === "route") return { key: "route", label: "라우트", kind: "route" };
+  if (visual === "policy") return { key: "policy", label: "Policy", kind: "policy" };
+  if (visual === "route") return { key: "route", label: "Route", kind: "route" };
   const pathValue = node.path || node.label || "";
-  if (!pathValue) return { key: "unknown", label: "미분류", kind: "other" };
+  if (!pathValue) return { key: "unknown", label: "Unclassified", kind: "other" };
   const label = folderClusterLabel(pathValue);
   return { key: `folder:${label}`, label, kind: folderKind(label, node) };
 }
@@ -2300,11 +2504,11 @@ function delegationBoundarySpecs(graph, analysis) {
   if (!hasVisibleRefs(stop, graphNodeIds)) addNodeIds(stop, evidenceIds);
 
   return [
-    boundarySpec("permission", "Permission boundary", permission, "agent가 실행/수정 권한을 위임받을 수 있는 그래프 범위", 58, frontiers.permissionFrontier?.size || lease?.allowedGraphNodes?.length),
-    boundarySpec("review", "Review boundary", review, "사람이 놓치면 안 되는 변경 영향 검토 범위", 46, frontiers.reviewFrontier?.size || lease?.reviewGraphNodes?.length),
-    boundarySpec("read", "Read boundary", read, "agent가 전체 저장소 전에 먼저 읽어야 하는 범위", 34, readPlan.length || frontiers.contextFrontier?.size),
-    boundarySpec("lease", "Lease boundary", leaseSet, "현재 signed approval lease가 재사용 가능한 범위", 26, lease?.fileScopes?.length || lease?.allowedGraphNodes?.length),
-    boundarySpec("stop", "Stop / re-ask boundary", stop, "범위를 넘으면 멈추거나 다시 물어야 하는 조건", 38, frontiers.stopFrontier?.size || lease?.stopGraphNodes?.length)
+    boundarySpec("permission", "Permission boundary", permission, "graph scope the agent may execute or edit within", 58, frontiers.permissionFrontier?.size || lease?.allowedGraphNodes?.length),
+    boundarySpec("review", "Review boundary", review, "change-impact surface a human should not miss", 46, frontiers.reviewFrontier?.size || lease?.reviewGraphNodes?.length),
+    boundarySpec("read", "Read boundary", read, "what the agent should read before the rest of the repo", 34, readPlan.length || frontiers.contextFrontier?.size),
+    boundarySpec("lease", "Lease boundary", leaseSet, "where the current signed approval lease can be reused", 26, lease?.fileScopes?.length || lease?.allowedGraphNodes?.length),
+    boundarySpec("stop", "Stop / re-ask boundary", stop, "conditions that force the agent to stop or ask again", 38, frontiers.stopFrontier?.size || lease?.stopGraphNodes?.length)
   ].filter((spec) => spec.ids.size || spec.paths.size);
 }
 
@@ -2649,6 +2853,8 @@ function togglePanel(side = "") {
   if (!["left", "right"].includes(side)) return;
   panelState[side] = !panelState[side];
   updateViewControls();
+  viewportInitialized = false;
+  if (currentAnalysis) render(currentAnalysis, "layout_reset", currentState);
 }
 
 function toggleGraphScope() {
@@ -2657,7 +2863,7 @@ function toggleGraphScope() {
   viewportInitialized = false;
   updateViewControls();
   if (currentAnalysis) render(currentAnalysis, "layout_reset", currentState);
-  setActivity(viewState.scope === "all" ? "전체 KG 표시" : "결정 KG 표시", true);
+  setActivity(viewState.scope === "all" ? "Showing full KG" : "Showing decision KG", true);
 }
 
 function updateViewControls() {
@@ -2665,17 +2871,191 @@ function updateViewControls() {
   document.body.classList.toggle("panel-right-hidden", !panelState.right);
   if (elements.leftPanelToggle) {
     elements.leftPanelToggle.setAttribute("aria-pressed", String(panelState.left));
-    elements.leftPanelToggle.title = panelState.left ? "Workspace 패널 숨기기" : "Workspace 패널 보이기";
+    elements.leftPanelToggle.title = panelState.left ? "Hide Workspace panel" : "Show Workspace panel";
   }
   if (elements.rightPanelToggle) {
     elements.rightPanelToggle.setAttribute("aria-pressed", String(panelState.right));
-    elements.rightPanelToggle.title = panelState.right ? "ScopeLease 패널 숨기기" : "ScopeLease 패널 보이기";
+    elements.rightPanelToggle.title = panelState.right ? "Hide ScopeLease panel" : "Show ScopeLease panel";
   }
   if (elements.scopeToggle) {
     const all = viewState.scope === "all";
     elements.scopeToggle.setAttribute("aria-pressed", String(all));
-    elements.scopeToggle.textContent = all ? "결정 KG" : "전체 KG";
-    elements.scopeToggle.title = all ? "결정 경로만 보기" : "전체 저장 KG 보기";
+    elements.scopeToggle.textContent = all ? "Decision KG" : "Full KG";
+    elements.scopeToggle.title = all ? "Show decision paths only" : "Show full stored KG";
+  }
+  applyLocaleToDocument();
+}
+
+function initialLocale() {
+  try {
+    const stored = localStorage.getItem(LOCALE_STORAGE_KEY);
+    return stored === "ko" ? "ko" : "en";
+  } catch {
+    return "en";
+  }
+}
+
+function setLocale(locale) {
+  activeLocale = locale === "ko" ? "ko" : "en";
+  try {
+    localStorage.setItem(LOCALE_STORAGE_KEY, activeLocale);
+  } catch {
+    // The current page can still switch language if localStorage is unavailable.
+  }
+  if (currentAnalysis) render(currentAnalysis, "locale", currentState);
+  else applyLocaleToDocument();
+}
+
+function applyLocaleToDocument() {
+  document.documentElement.lang = activeLocale === "ko" ? "ko" : "en";
+  document.title = translateUiText("ScopeLease Graph View");
+  for (const button of elements.localeButtons) {
+    const active = button.dataset.localeOption === activeLocale;
+    button.setAttribute("aria-pressed", active ? "true" : "false");
+  }
+  translateNodeText(document.body);
+  translateAttributes(document.body);
+}
+
+function translateUiText(value = "") {
+  const text = String(value || "");
+  if (!text) return text;
+  const pairs = activeLocale === "ko"
+    ? UI_TRANSLATION_PAIRS
+    : UI_TRANSLATION_PAIRS.map(([english, korean]) => [korean, english]);
+  let result = text;
+  for (const [from, to] of [...pairs].sort((left, right) => right[0].length - left[0].length)) {
+    if (from) result = result.replaceAll(from, to);
+  }
+  const regexPairs = activeLocale === "ko" ? KO_REGEX_TRANSLATIONS : EN_REGEX_TRANSLATIONS;
+  for (const [pattern, replacement] of regexPairs) {
+    result = result.replace(pattern, replacement);
+  }
+  return result;
+}
+
+const KO_REGEX_TRANSLATIONS = [
+  [/\bCritical\b/g, "치명적"],
+  [/\bHigh\b/g, "높음"],
+  [/\bMedium\b/g, "중간"],
+  [/\bLow\b/g, "낮음"],
+  [/\bcritical\b/g, "치명적"],
+  [/\bhigh\b/g, "높음"],
+  [/\bmedium\b/g, "중간"],
+  [/\blow\b/g, "낮음"],
+  [/\bNo extra approval\b/g, "추가 승인 없음"],
+  [/\bAuto-log\b/g, "자동 기록"],
+  [/\bAudit log\b/g, "감사 기록"],
+  [/\bOwner review\b/g, "담당자 리뷰"],
+  [/\bHuman review\b/g, "사람 리뷰"],
+  [/\bSenior review\b/g, "결정권자 리뷰"],
+  [/\bApprover review\b/g, "승인권자 승인"],
+  [/\b(\d+)\/(\d+) visible \/ stored nodes\b/g, "$1/$2 표시 / 저장 노드"],
+  [/\b(\d+)\/(\d+) shown\b/g, "$1/$2 표시"],
+  [/\b(\d+) shown \/ (\d+) nodes\b/g, "$1개 표시 / $2개 노드"],
+  [/\b(\d+) nodes \/ (\d+) rels\b/g, "$1개 노드 / $2개 관계"],
+  [/\b(\d+) nodes \/ (\d+) edges\b/g, "$1개 노드 / $2개 관계"],
+  [/\b(\d+) projects\b/g, "$1개 프로젝트"],
+  [/\b(\d+) running\b/g, "$1개 실행 중"],
+  [/\b(\d+) threads\b/g, "$1개 스레드"],
+  [/\b(\d+) events\b/g, "$1개 이벤트"],
+  [/\b(\d+) nodes\b/g, "$1개 노드"],
+  [/\b(\d+) edges\b/g, "$1개 관계"],
+  [/\b(\d+) rels\b/g, "$1개 관계"],
+  [/\b(\d+) files\b/g, "$1개 파일"],
+  [/\b(\d+) commands\b/g, "$1개 명령"],
+  [/\blanes (\d+) · overlap (\d+) · max (\d+)%\b/g, "lanes $1 · 겹침 $2 · 최대 $3%"],
+  [/\bAdded (\d+) \/ updated (\d+) \/ removed (\d+)\b/g, "추가 $1 / 갱신 $2 / 삭제 $3"],
+  [/\bZoom (\d+)%\b/g, "줌 $1%"],
+  [/\bMCP ([0-9.]+k) · hook ([0-9.]+k)\b/g, "MCP $1 · hook $2"],
+  [/\bhook\/watcher ([0-9.]+k)\b/g, "hook/watcher $1"],
+  [/\bwaiting for agent-visible events\b/g, "agent-visible 이벤트 대기"],
+  [/\bruntime\b/g, "런타임"],
+  [/\bscan ([0-9.]+)s\b/g, "스캔 $1초"],
+  [/\bscope: (\d+) files · (\d+) commands · default\b/g, "범위: $1개 파일 · $2개 명령 · 기본"],
+  [/\b(\d+)m candidate\b/g, "$1분 후보"],
+  [/\b(\d+)m left\b/g, "$1분 남음"],
+  [/\btarget\b/g, "대상"],
+  [/\bload\b/g, "부하"],
+  [/\bchanged file\b/g, "변경 파일"],
+  [/\bchanged since baseline\b/g, "기준점 이후 변경"],
+  [/\bimports changed file\b/g, "변경 파일을 호출"],
+  [/\brelated test\b/g, "관련 테스트"],
+  [/\brelated doc\b/g, "관련 문서"],
+  [/\broot \/ policy\b/g, "root / 정책"],
+  [/\bdepth (\d+)\+\b/g, "depth $1+"],
+  [/\bdepth (\d+)\b/g, "depth $1"],
+  [/\bHub (\d+) projects · (\d+) running\b/g, "허브 $1개 프로젝트 · $2개 실행 중"],
+  [/\bKG (\d+)\/(\d+)\b/g, "KG $1/$2"],
+  [/scope outside 파일, network, checkpoint a new decision require separation/g, "scope 밖 파일, 네트워크, 체크포인트는 새 판단으로 분리"],
+  [/scope outside 파일, network, checkpoint and decision require separation/g, "scope 밖 파일, 네트워크, 체크포인트는 새 판단으로 분리"]
+];
+
+const EN_REGEX_TRANSLATIONS = [
+  [/치명적/g, "Critical"],
+  [/높음/g, "High"],
+  [/중간/g, "Medium"],
+  [/낮음/g, "Low"],
+  [/추가 승인 없음/g, "No extra approval"],
+  [/자동 기록/g, "Auto-log"],
+  [/감사 기록/g, "Audit log"],
+  [/담당자 리뷰/g, "Owner review"],
+  [/사람 리뷰/g, "Human review"],
+  [/결정권자 리뷰/g, "Senior review"],
+  [/승인권자 승인/g, "Approver review"],
+  [/(\d+)\/(\d+) 표시 \/ 저장 노드/g, "$1/$2 visible / stored nodes"],
+  [/(\d+)\/(\d+) 표시/g, "$1/$2 shown"],
+  [/(\d+)개 표시 \/ (\d+)개 노드/g, "$1 shown / $2 nodes"],
+  [/(\d+)개 노드 \/ (\d+)개 관계/g, "$1 nodes / $2 edges"],
+  [/(\d+)개 프로젝트/g, "$1 projects"],
+  [/(\d+)개 실행 중/g, "$1 running"],
+  [/(\d+)개 스레드/g, "$1 threads"],
+  [/(\d+)개 이벤트/g, "$1 events"],
+  [/(\d+)개 파일/g, "$1 files"],
+  [/(\d+)개 명령/g, "$1 commands"],
+  [/(\d+)개 노드/g, "$1 nodes"],
+  [/(\d+)개 관계/g, "$1 edges"],
+  [/lanes (\d+) · 겹침 (\d+) · 최대 (\d+)%/g, "lanes $1 · overlap $2 · max $3%"],
+  [/추가 (\d+) \/ 갱신 (\d+) \/ 삭제 (\d+)/g, "Added $1 / updated $2 / removed $3"],
+  [/줌 (\d+)%/g, "Zoom $1%"],
+  [/agent-visible 이벤트 대기/g, "waiting for agent-visible events"],
+  [/런타임/g, "runtime"],
+  [/스캔 ([0-9.]+)초/g, "scan $1s"],
+  [/범위: (\d+) files · (\d+) commands · 기본/g, "scope: $1 files · $2 commands · default"],
+  [/범위: (\d+)개 파일 · (\d+)개 명령 · 기본/g, "scope: $1 files · $2 commands · default"],
+  [/(\d+)분 후보/g, "$1m candidate"],
+  [/(\d+)분 남음/g, "$1m left"],
+  [/대상/g, "target"],
+  [/부하/g, "load"],
+  [/변경 파일/g, "changed file"],
+  [/기준점 이후 변경/g, "changed since baseline"],
+  [/변경 파일을 호출/g, "imports changed file"],
+  [/관련 테스트/g, "related test"],
+  [/관련 문서/g, "related doc"],
+  [/root \/ 정책/g, "root / policy"],
+  [/허브 (\d+)개 프로젝트 · (\d+)개 실행 중/g, "Hub $1 projects · $2 running"]
+];
+
+function translateNodeText(root) {
+  const excludedTags = new Set(["SCRIPT", "STYLE", "NOSCRIPT"]);
+  const walk = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
+    acceptNode(node) {
+      const parent = node.parentElement;
+      if (!parent || excludedTags.has(parent.tagName)) return NodeFilter.FILTER_REJECT;
+      return node.nodeValue.trim() ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_SKIP;
+    }
+  });
+  const nodes = [];
+  while (walk.nextNode()) nodes.push(walk.currentNode);
+  for (const node of nodes) node.nodeValue = translateUiText(node.nodeValue);
+}
+
+function translateAttributes(root) {
+  for (const node of root.querySelectorAll("[title], [aria-label], [alt]")) {
+    for (const attribute of ["title", "aria-label", "alt"]) {
+      if (!node.hasAttribute(attribute)) continue;
+      node.setAttribute(attribute, translateUiText(node.getAttribute(attribute) || ""));
+    }
   }
 }
 
@@ -2744,7 +3124,7 @@ function drawGhostNodes(svg) {
 
     const sub = document.createElementNS("http://www.w3.org/2000/svg", "text");
     sub.setAttribute("class", "sub");
-    sub.textContent = "삭제됨";
+    sub.textContent = "Deleted";
     group.appendChild(sub);
 
     svg.appendChild(group);
@@ -2756,18 +3136,19 @@ function renderDecision(analysis) {
   const economy = pack.tokenEconomy;
   const gate = pack.decisionGate;
   const tokenCopy = formatTokenEconomy(economy);
-  const decisionTitle = gate?.statusLabel || (gate ? gateLabel(gate.status) : routeLabel(analysis.recommendation || "auto_log"));
-  const nextAction = gate?.nextAction || (gate ? nextActionLabel(gate, analysis) : "변경 내용을 기록하고 필요 시 검토합니다.");
-  const automation = gate?.automationLabel || (gate ? autoLabel(gate) : "-");
+  const decisionTitle = displayText(gate?.statusLabel) || (gate ? gateLabel(gate.status) : routeLabel(analysis.recommendation || "auto_log"));
+  const nextAction = displayText(gate?.nextAction) || (gate ? nextActionLabel(gate, analysis) : "Record the change and review when needed.");
+  const automation = displayText(gate?.automationLabel) || (gate ? autoLabel(gate) : "-");
   const promptContext = pack.codexInput?.promptContext || pack.agentContext || {};
   const fatiguePlan = promptContext.fatiguePlan || pack.agentContext?.fatiguePlan || {};
   const agentJudgment = agentJudgmentFromAnalysis(analysis);
   const requestText = analysis.contextPack?.userRequest?.text || analysis.userRequest || pack.codexInput?.userRequest?.text || "";
-  const displayRequestText = displayUserRequestText(requestText);
-  const requestSummary = displayRequestText
-    ? compactMiddle(displayRequestText, 86)
-    : "현재 입력 대기 중";
-  const decisionQuestion = fatiguePlan.askOnce?.[0] || nextAction || decisionTitle;
+  const displayRequestText = displayText(displayUserRequestText(requestText));
+  const localizedRequestText = translateUiText(displayRequestText);
+  const requestSummary = localizedRequestText
+    ? compactMiddle(localizedRequestText, 86)
+    : "Waiting for current input";
+  const decisionQuestion = displayText(fatiguePlan.askOnce?.[0]) || nextAction || decisionTitle;
   const decisionDisplay = compactMiddle(decisionQuestion, 118);
   const decisionMeta = `${decisionTitle} · ${automation}`;
   const guardCopy = formatGuardBrokerCopy(fatiguePlan, currentState);
@@ -2793,7 +3174,7 @@ function renderDecision(analysis) {
   renderUserDecisionPanel({
     analysis,
     requestSummary,
-    requestTitle: displayRequestText,
+    requestTitle: localizedRequestText || displayRequestText,
     tokenCopy,
     pairSavings,
     hookEstimate,
@@ -2839,18 +3220,18 @@ function latestGuardAgentJudgment(state = {}) {
 function compactAgentJudgmentStatus(agentJudgment = {}) {
   const assistance = agentJudgment.decisionAssistance || {};
   if (!assistance.interruptHuman) return "";
-  const reason = (assistance.riskReasons || [])[0] || agentJudgment.headline || "위험 신호";
-  return compactMiddle(`위험 확인: ${reason} · 추천 ${assistance.recommendedChoice || agentJudgment.recommendedChoice || "-"}`, 118);
+  const reason = (assistance.riskReasons || [])[0] || agentJudgment.headline || "risk signal";
+  return compactMiddle(`Risk check: ${displayText(reason)} · recommendation ${displayText(assistance.recommendedChoice || agentJudgment.recommendedChoice || "-")}`, 118);
 }
 
 function agentJudgmentTitle(agentJudgment = {}) {
   if (!agentJudgment?.headline && !agentJudgment?.interpretedInput) return "";
   return [
-    agentJudgment.headline ? `Agent 판단: ${agentJudgment.headline}` : "",
-    agentJudgment.interpretedInput ? `입력 해석: ${agentJudgment.interpretedInput}` : "",
-    (agentJudgment.willDo || []).length ? `할 일: ${(agentJudgment.willDo || []).join(" / ")}` : "",
-    agentJudgment.approvalEffect ? `승인 의미: ${agentJudgment.approvalEffect}` : "",
-    (agentJudgment.willNotDo || []).length ? `하지 않을 일: ${(agentJudgment.willNotDo || []).join(" / ")}` : ""
+    agentJudgment.headline ? `Agent judgment: ${displayText(agentJudgment.headline)}` : "",
+    agentJudgment.interpretedInput ? `Input interpretation: ${displayText(agentJudgment.interpretedInput)}` : "",
+    (agentJudgment.willDo || []).length ? `Will do: ${(agentJudgment.willDo || []).map(displayText).join(" / ")}` : "",
+    agentJudgment.approvalEffect ? `Approval effect: ${displayText(agentJudgment.approvalEffect)}` : "",
+    (agentJudgment.willNotDo || []).length ? `Will not do: ${(agentJudgment.willNotDo || []).map(displayText).join(" / ")}` : ""
   ].filter(Boolean).join("\n");
 }
 
@@ -2874,33 +3255,33 @@ function renderUserDecisionPanel({
   const currentUsage = summarizeAgentVisibleUsageEvents({ actualEvents, mcpContextEvents });
   const savingsDisplay = formatSavingsDisplay(pairSavings, hookEstimate);
   elements.decisionPanel.innerHTML = `
-    ${userPanelHeader("ScopeLease", "최종 사용자 화면")}
+    ${userPanelHeader("ScopeLease", "Final user screen")}
     <section class="user-decision-panel">
       <div class="user-request-card">
-        <b>이번 요청</b>
+        <b>Current request</b>
         <strong title="${escapeHtml(requestTitle || analysis.userRequest || "")}">${escapeHtml(requestSummary)}</strong>
       </div>
       ${renderAgentJudgmentPanel(agentJudgment)}
       <div class="user-metric-grid">
-        <span><b>ScopeLease 입력</b><strong>${escapeHtml(tokenCopy.actualInput || "-")}</strong><em>전달 후보</em></span>
-        <span><b>이번 관측</b><strong>${escapeHtml(currentUsage.value)}</strong><em>${escapeHtml(currentUsage.status)}</em></span>
-        <span><b>${escapeHtml(savingsDisplay.label)}</b><strong>${escapeHtml(savingsDisplay.value)}</strong><em>${escapeHtml(savingsDisplay.meta)}</em></span>
+        <span><b>ScopeLease input</b><strong>${escapeHtml(tokenCopy.actualInput || "-")}</strong><em>delivery candidate</em></span>
+        <span><b>Current observation</b><strong>${escapeHtml(currentUsage.value)}</strong><em>${escapeHtml(currentUsage.status)}</em></span>
+        <span><b>${escapeHtml(displayText(savingsDisplay.label))}</b><strong>${escapeHtml(displayText(savingsDisplay.value))}</strong><em>${escapeHtml(displayText(savingsDisplay.meta))}</em></span>
       </div>
       <div class="user-decision-callout">
-        <b>결정할 것</b>
+        <b>Decision needed</b>
         <strong>${escapeHtml(decisionDisplay)}</strong>
         <em>${escapeHtml(decisionMeta)}</em>
       </div>
       <div class="user-boundary-grid">
-        <span><b>판정</b>${escapeHtml(guardCopy.verdict || "-")}</span>
-        <span><b>승인</b>${escapeHtml(guardCopy.lease || "-")}</span>
-        <span><b>Provider/API</b>${escapeHtml(usageBoundary.providerStatus || "제외")}</span>
+        <span><b>Verdict</b>${escapeHtml(guardCopy.verdict || "-")}</span>
+        <span><b>Approval</b>${escapeHtml(guardCopy.lease || "-")}</span>
+        <span><b>Provider/API</b>${escapeHtml(usageBoundary.providerStatus || "Excluded")}</span>
       </div>
       <div class="guard-evidence-panel">
-        <span><b>최근 guard</b>${escapeHtml(guardEvidence.latestGuard || "-")}</span>
-        <span><b>활성 lease</b>${escapeHtml(guardEvidence.activeLease || "-")}</span>
-        <span><b>권한 범위</b>${escapeHtml(guardEvidence.scope || "-")}</span>
-        <span><b>중단 조건</b>${escapeHtml(guardEvidence.stopWhen || "-")}</span>
+        <span><b>Latest guard</b>${escapeHtml(guardEvidence.latestGuard || "-")}</span>
+        <span><b>Active lease</b>${escapeHtml(guardEvidence.activeLease || "-")}</span>
+        <span><b>Authority scope</b>${escapeHtml(guardEvidence.scope || "-")}</span>
+        <span><b>Stop condition</b>${escapeHtml(guardEvidence.stopWhen || "-")}</span>
       </div>
       <div class="guard-evidence-panel frontier-evidence-panel">
         <span><b>Review frontier</b>${escapeHtml(frontierCopy.review || "-")}</span>
@@ -2908,7 +3289,7 @@ function renderUserDecisionPanel({
         <span><b>Stop frontier</b>${escapeHtml(frontierCopy.stop || "-")}</span>
         <span><b>Graph scope</b>${escapeHtml(frontierCopy.scope || "-")}</span>
       </div>
-      <p class="user-note">${escapeHtml(savingsDisplay.note)}</p>
+      <p class="user-note">${escapeHtml(displayText(savingsDisplay.note))}</p>
     </section>
   `;
 }
@@ -2935,22 +3316,22 @@ function renderAgentJudgmentPanel(agentJudgment = {}) {
   const assistance = agentJudgment.decisionAssistance || {};
   if (assistance.surface === "silent") return "";
   const interrupt = Boolean(assistance.interruptHuman);
-  const title = interrupt ? "위험 판단" : "위임 판단";
-  const reasons = (assistance.riskReasons || agentJudgment.riskReasons || []).slice(0, 3).join(" · ");
-  const help = (assistance.decisionHelp || agentJudgment.decisionHelp || agentJudgment.willDo || []).slice(0, 3).join(" · ");
-  const recommendation = assistance.recommendedChoice || agentJudgment.recommendedChoice || "-";
+  const title = interrupt ? "Risk judgment" : "Delegation judgment";
+  const reasons = (assistance.riskReasons || agentJudgment.riskReasons || []).slice(0, 3).map(displayText).join(" · ");
+  const help = (assistance.decisionHelp || agentJudgment.decisionHelp || agentJudgment.willDo || []).slice(0, 3).map(displayText).join(" · ");
+  const recommendation = displayText(assistance.recommendedChoice || agentJudgment.recommendedChoice || "-");
   const evaluation = [
-    assistance.evaluationSignals?.humanTarget ? `대상 ${assistance.evaluationSignals.humanTarget}` : "",
-    assistance.evaluationSignals?.expectedCognitiveLoad ? `부하 ${assistance.evaluationSignals.expectedCognitiveLoad}` : ""
+    assistance.evaluationSignals?.humanTarget ? `target ${displayText(assistance.evaluationSignals.humanTarget)}` : "",
+    assistance.evaluationSignals?.expectedCognitiveLoad ? `load ${displayText(assistance.evaluationSignals.expectedCognitiveLoad)}` : ""
   ].filter(Boolean).join(" · ");
   return `
     <div class="agent-judgment-panel ${interrupt ? "interrupt" : "review"}">
-      <span><b>${escapeHtml(title)}</b>${escapeHtml(agentJudgment.headline || "-")}</span>
-      <span><b>입력 해석</b>${escapeHtml(agentJudgment.interpretedInput || "-")}</span>
-      <span><b>왜 보는가</b>${escapeHtml(reasons || "위험 알림 없이 범위 위임만 확인")}</span>
-      <span><b>추천</b>${escapeHtml(recommendation)}</span>
-      <span><b>사람이 볼 것</b>${escapeHtml(help || "-")}</span>
-      <span><b>평가 신호</b>${escapeHtml(evaluation || "사용자 판단 없음")}</span>
+      <span><b>${escapeHtml(title)}</b>${escapeHtml(displayText(agentJudgment.headline) || "-")}</span>
+      <span><b>Input interpretation</b>${escapeHtml(displayText(agentJudgment.interpretedInput) || "-")}</span>
+      <span><b>Why it is shown</b>${escapeHtml(reasons || "Only delegation scope is shown; no risk interruption.")}</span>
+      <span><b>Recommendation</b>${escapeHtml(recommendation)}</span>
+      <span><b>Human should check</b>${escapeHtml(help || "-")}</span>
+      <span><b>Evaluation signal</b>${escapeHtml(evaluation || "No user judgment")}</span>
     </div>
   `;
 }
@@ -2974,10 +3355,10 @@ function formatAgentUsageBoundary(state = {}, analysis = {}) {
   const observed = scopedContextEvents.length || scopedActualEvents.length;
   return {
     apiEndpoint,
-    providerStatus: "제외",
+    providerStatus: "Excluded",
     status: observed
-      ? `MCP ${formatTokenCount(mcpTokens)} · 훅 ${formatTokenCount(actualTokens)}`
-      : `agent-visible 이벤트 대기 · 실행 ${formatShortTime(runtime.startedAt)}`
+      ? `MCP ${formatTokenCount(mcpTokens)} · hook ${formatTokenCount(actualTokens)}`
+      : `waiting for agent-visible events · runtime ${formatShortTime(runtime.startedAt)}`
   };
 }
 
@@ -2990,20 +3371,20 @@ function summarizeAgentVisibleUsageEvents(group = {}) {
   if (!connected) {
     return {
       connected: false,
-      value: "선택 꺼짐",
-      status: "관측 대기",
-      detail: "agent-visible 기준입니다. ScopeLease MCP 입력과 훅/워처 payload가 쌓이면 표시합니다."
+      value: "Off",
+      status: "Waiting",
+      detail: "Agent-visible basis. ScopeLease MCP input and hook/watcher payloads appear when recorded."
     };
   }
   const detail = [
     `MCP ${formatTokenCount(mcpTokens)}`,
-    `훅/워처 ${formatTokenCount(actualTokens)}`,
-    `${mcpContextEvents.length + actualEvents.length}개 이벤트`
+    `hook/watcher ${formatTokenCount(actualTokens)}`,
+    `${mcpContextEvents.length + actualEvents.length} events`
   ].filter(Boolean).join(" · ");
   return {
     connected: true,
     value: formatTokenCount(mcpTokens + actualTokens),
-    status: "관측됨",
+    status: "Observed",
     detail
   };
 }
@@ -3017,16 +3398,16 @@ function formatGuardBrokerCopy(fatiguePlan = {}, state = {}) {
   const commandCount = (scope.commands || []).length;
   const stopWhen = bundle.stopWhen || fatiguePlan.stopWhen || [];
   return {
-    verdict: bundle.defaultVerdict || fatiguePlan.mode || "준비 중",
+    verdict: bundle.defaultVerdict || fatiguePlan.mode || "Preparing",
     lease: leases.length
       ? `${leases.length} signed active`
-      : `${fatiguePlan.reusableApproval?.leaseMinutes || scope.expiresInMinutes || 30}m 후보`,
+      : `${fatiguePlan.reusableApproval?.leaseMinutes || scope.expiresInMinutes || 30}m candidate`,
     metrics: `ask ${metrics.humanPromptsShown || 0} · auto ${metrics.agentActionsAutoAllowed || 0} · hit ${metrics.approvalLeaseHits || 0}`,
-    question: bundle.question || "agent action을 실행 전에 allow / ask_once / prepare_only / deny로 판정합니다.",
-    scope: `범위: 파일 ${fileCount}개 · 명령 ${commandCount}개 · 기본 ${bundle.defaultVerdict || "-"}`,
+    question: displayText(bundle.question) || "Classify the agent action as allow / ask_once / prepare_only / deny before execution.",
+    scope: `scope: ${fileCount} files · ${commandCount} commands · default ${bundle.defaultVerdict || "-"}`,
     stopWhen: stopWhen.length
-      ? `멈춤: ${stopWhen.slice(0, 4).join(", ")}${stopWhen.length > 4 ? ` 외 ${stopWhen.length - 4}개` : ""}`
-      : "멈춤 조건이 아직 없습니다."
+      ? `stop: ${stopWhen.slice(0, 4).map(displayText).join(", ")}${stopWhen.length > 4 ? ` plus ${stopWhen.length - 4}` : ""}`
+      : "No stop conditions yet."
   };
 }
 
@@ -3042,17 +3423,17 @@ function buildGuardEvidence(state = {}, fatiguePlan = {}) {
   const stopWhen = latestLease?.stopWhen || bundle.stopWhen || fatiguePlan.stopWhen || [];
   const guardLabel = latestGuard
     ? `${latestGuard.verdict || "-"} · ${latestGuard.actionGrant || "-"}${latestGuard.leaseId ? ` · ${shortId(latestGuard.leaseId)}` : ""}`
-    : "아직 없음";
+    : "None yet";
   const leaseLabel = latestLease
     ? `${shortId(latestLease.id)} · ${latestLease.choiceId || "-"} · ${formatRelativeExpiry(latestLease.expiresAt)}`
-    : "없음";
+    : "None";
   return {
     latestGuard: guardLabel,
     activeLease: leaseLabel,
-    scope: `파일 ${fileScopes.length || 0} · 명령 ${commandScopes.length || 0}`,
+    scope: `${fileScopes.length || 0} files · ${commandScopes.length || 0} commands`,
     stopWhen: stopWhen.length
-      ? compactMiddle(stopWhen.slice(0, 3).join(", "), 70)
-      : "없음"
+      ? compactMiddle(stopWhen.slice(0, 3).map(displayText).join(", "), 70)
+      : "None"
   };
 }
 
@@ -3077,15 +3458,15 @@ function shortId(value = "") {
 
 function formatRelativeExpiry(value = "") {
   const time = Date.parse(value || "");
-  if (!Number.isFinite(time)) return "만료 없음";
+  if (!Number.isFinite(time)) return "no expiry";
   const minutes = Math.ceil((time - Date.now()) / 60000);
-  if (minutes <= 0) return "만료됨";
-  return `${minutes}m 남음`;
+  if (minutes <= 0) return "expired";
+  return `${minutes}m left`;
 }
 
 function formatLiveCopy(state = {}) {
   const connected = liveStatus.connected;
-  const mode = connected ? "실시간 연결" : (liveStatus.mode === "poll" ? "폴링 갱신" : "재연결 대기");
+  const mode = connected ? "Live connected" : (liveStatus.mode === "poll" ? "Polling update" : "Waiting for reconnect");
   const scan = state.runtime?.scanIntervalMs ? ` · scan ${Math.round(state.runtime.scanIntervalMs / 100) / 10}s` : "";
   const at = liveStatus.at || state.latestAnalysis?.generatedAt || "";
   const eventTime = at ? formatLiveTime(at) : "-";
@@ -3098,48 +3479,48 @@ function formatLiveCopy(state = {}) {
 function formatLiveTime(value = "") {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return "-";
-  return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+  return date.toLocaleTimeString(activeLocale === "ko" ? "ko-KR" : "en-US", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
 }
 
 function eventReasonLabel(reason = "") {
   const map = {
-    initial: "초기 분석",
-    scan: "주기 분석",
-    "file-change": "파일 변경",
-    "repo-refresh": "루트 새로고침",
-    "repo-switch": "루트 변경",
-    update: "수동 갱신",
-    state: "상태 수신",
-    poll: "폴링 갱신",
-    heartbeat: "연결 확인",
-    open: "연결됨"
+    initial: "Initial analysis",
+    scan: "Periodic scan",
+    "file-change": "File change",
+    "repo-refresh": "Root refresh",
+    "repo-switch": "Root changed",
+    update: "Manual refresh",
+    state: "State received",
+    poll: "Polling update",
+    heartbeat: "Heartbeat",
+    open: "Connected"
   };
-  return map[reason] || reason || "대기";
+  return map[reason] || reason || "Idle";
 }
 
 function updateLiveIndicators() {
   const copy = formatLiveCopy(currentState || {});
   for (const node of document.querySelectorAll("[data-live-status]")) {
-    node.textContent = copy.status;
+    node.textContent = translateUiText(copy.status);
   }
   for (const node of document.querySelectorAll("[data-live-event]")) {
-    node.textContent = copy.event;
+    node.textContent = translateUiText(copy.event);
   }
   if (elements.activityLabel && !elements.activityLabel.classList.contains("active")) {
-    elements.activityLabel.textContent = copy.status;
+    elements.activityLabel.textContent = translateUiText(copy.status);
   }
 }
 
 async function copyCodexInputToClipboard(text = "") {
   if (!text.trim()) {
-    setActivity("복사할 agent input 없음", true);
+    setActivity("No agent input to copy", true);
     return;
   }
   try {
     await navigator.clipboard.writeText(text);
-    setActivity("agent input 복사됨", true);
+    setActivity("Agent input copied", true);
   } catch (_error) {
-    setActivity("브라우저 복사 권한 없음", true);
+    setActivity("Browser copy permission unavailable", true);
   }
 }
 
@@ -3296,113 +3677,113 @@ function currentPairId() {
 }
 
 function formatShortTime(value = "") {
-  if (!value) return "시작 시각 미확인";
+  if (!value) return "start time unknown";
   const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return "시작 시각 미확인";
-  return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+  if (Number.isNaN(date.getTime())) return "start time unknown";
+  return date.toLocaleTimeString(activeLocale === "ko" ? "ko-KR" : "en-US", { hour: "2-digit", minute: "2-digit" });
 }
 
 function nodeTypeLabel(node) {
   const labels = new Set(nodeLabels(node));
-  if (labels.has("Policy")) return "정책";
-  if (labels.has("Route")) return "라우트";
-  if (labels.has("Function")) return "함수";
-  if (labels.has("Class")) return "클래스";
-  if (labels.has("Type")) return "타입";
-  if (labels.has("TestFile")) return "테스트";
-  if (labels.has("Document")) return "문서";
-  if (labels.has("ConfigFile")) return "설정";
-  if (labels.has("CodeFile")) return "코드";
-  if (node.className === "changed") return "변경";
-  if (node.className === "route") return "라우트";
-  if (node.className === "policy") return "정책";
-  if (node.className === "symbol") return node.type === "changed_type" ? "변경 타입" : "변경 함수";
-  if (node.fileType === "test" || node.type === "test") return "테스트";
-  if (node.fileType === "doc" || node.type === "doc") return "문서";
-  if (node.fileType === "code" || node.type === "file") return "코드";
-  return node.fileType || node.type || "노드";
+  if (labels.has("Policy")) return "Policy";
+  if (labels.has("Route")) return "Route";
+  if (labels.has("Function")) return "Function";
+  if (labels.has("Class")) return "Class";
+  if (labels.has("Type")) return "Type";
+  if (labels.has("TestFile")) return "Test";
+  if (labels.has("Document")) return "Document";
+  if (labels.has("ConfigFile")) return "Config";
+  if (labels.has("CodeFile")) return "Code";
+  if (node.className === "changed") return "Changed";
+  if (node.className === "route") return "Route";
+  if (node.className === "policy") return "Policy";
+  if (node.className === "symbol") return node.type === "changed_type" ? "Changed type" : "Changed function";
+  if (node.fileType === "test" || node.type === "test") return "Test";
+  if (node.fileType === "doc" || node.type === "doc") return "Document";
+  if (node.fileType === "code" || node.type === "file") return "Code";
+  return node.fileType || node.type || "Node";
 }
 
 function pathKindLabel(kind) {
   return {
-    route: "라우트 경로",
-    test: "테스트 근거",
-    doc: "문서 근거",
-    policy: "정책 근거",
-    imported_by: "호출 영향",
-    imports: "의존",
-    defines: "정의",
-    mentions: "언급"
+    route: "route path",
+    test: "test evidence",
+    doc: "doc evidence",
+    policy: "policy evidence",
+    imported_by: "call impact",
+    imports: "dependency",
+    defines: "defines",
+    mentions: "mentions"
   }[kind] || kind;
 }
 
 function edgeTypeLabel(type) {
   return {
-    defines: "정의",
-    imports: "가져옴",
-    imported_by: "호출됨",
-    route: "라우트",
-    defined_by: "구현",
-    tests: "검증",
-    mentions: "언급",
-    policy_hit: "정책"
+    defines: "defines",
+    imports: "imports",
+    imported_by: "called by",
+    route: "route",
+    defined_by: "defined by",
+    tests: "tests",
+    mentions: "mentions",
+    policy_hit: "policy"
   }[type] || type;
 }
 
 function riskLabel(value) {
-  return { low: "낮음", medium: "중간", high: "높음", critical: "치명적" }[value] || value;
+  return { low: "Low", medium: "Medium", high: "High", critical: "Critical" }[value] || displayText(value);
 }
 
 function routeLabel(value) {
   return {
-    auto_log: "자동 기록",
-    log_only: "감사 기록",
-    owner_review: "담당자 리뷰",
-    reviewer: "담당자 리뷰",
-    human_review: "사람 리뷰",
-    senior_review: "결정권자 리뷰",
-    approver: "승인권자 승인",
-    block: "차단",
-    none: "추가 승인 없음"
-  }[value] || value;
+    auto_log: "Auto-log",
+    log_only: "Audit log",
+    owner_review: "Owner review",
+    reviewer: "Owner review",
+    human_review: "Human review",
+    senior_review: "Senior review",
+    approver: "Approver review",
+    block: "Blocked",
+    none: "No extra approval"
+  }[value] || displayText(value);
 }
 
 function gateLabel(value) {
   return {
-    approval_required: "승인 전 차단",
-    senior_review_required: "결정권자 리뷰 필요",
-    owner_review_required: "담당자 리뷰 필요",
-    auto_log_allowed: "자동 기록 가능",
-    log_only: "감사 기록"
-  }[value] || value;
+    approval_required: "Blocked until approval",
+    senior_review_required: "Senior review required",
+    owner_review_required: "Owner review required",
+    auto_log_allowed: "Auto-log allowed",
+    log_only: "Audit log"
+  }[value] || displayText(value);
 }
 
 function autoLabel(gate) {
-  if (gate.canAutoApplyPatch && gate.canAutoCheckpoint) return "적용 및 체크포인트 가능";
-  if (gate.canAutoApplyPatch) return "적용 가능, 체크포인트는 별도";
-  if (gate.canAutoPreparePatch) return "초안 작성만 가능";
-  return "자동 작업 차단";
+  if (gate.canAutoApplyPatch && gate.canAutoCheckpoint) return "Apply and checkpoint allowed";
+  if (gate.canAutoApplyPatch) return "Apply allowed, checkpoint separate";
+  if (gate.canAutoPreparePatch) return "Prepare patch only";
+  return "Automated work blocked";
 }
 
 function nextActionLabel(gate, analysis) {
-  if (gate.status === "approval_required") return "승인권자가 보기 전까지 자동 적용하지 않습니다.";
-  if (gate.status === "senior_review_required") return "패치는 초안까지만 만들고 결정권자 리뷰가 필요합니다.";
-  if (gate.status === "owner_review_required") return "담당자 리뷰 후 기준점을 갱신합니다.";
-  if (gate.canAutoApplyPatch) return "낮은 위험 변경은 기록하면서 적용할 수 있습니다.";
-  return `${routeLabel(analysis.recommendation || "auto_log")} 경로로 보냅니다.`;
+  if (gate.status === "approval_required") return "Do not auto-apply before approver review.";
+  if (gate.status === "senior_review_required") return "Prepare a patch draft only; senior review is required.";
+  if (gate.status === "owner_review_required") return "Update the checkpoint after owner review.";
+  if (gate.canAutoApplyPatch) return "Low-risk changes can be applied with an audit trail.";
+  return `Route through ${routeLabel(analysis.recommendation || "auto_log")}.`;
 }
 
 function formatTokenEconomy(economy) {
   if (!economy) {
     return {
       agentInput: "-",
-      tokenMode: "토큰 계측 없음",
+      tokenMode: "no token measurement",
       tokenMethod: "-",
-      summary: "입력 후보 계측 없음",
+      summary: "No input-candidate measurement.",
       field: "contextPack.agentContext",
       visualGraph: "-",
-      omittedSummary: "생략 정보 없음",
-      budget: "예산 정보 없음"
+      omittedSummary: "No omitted-priority details.",
+      budget: "No budget data"
     };
   }
   const labels = economy.labels || {};
@@ -3416,7 +3797,7 @@ function formatTokenEconomy(economy) {
   const overBudget = labels.overBudget || formatTokenCount(economy.overBudgetTokens);
   const field = economy.agentInput?.field || "contextPack.agentContext";
   const omittedSummary = formatOmittedSummary(economy.agentInput?.omitted);
-  const tokenMode = economy.exactTokens ? "로컬 토큰 계측" : "fallback 계산";
+  const tokenMode = economy.exactTokens ? "local token measurement" : "fallback estimate";
   const tokenMethod = formatTokenizer(economy.tokenizer, tokenMode);
   return {
     fullRepo,
@@ -3426,16 +3807,16 @@ function formatTokenEconomy(economy) {
     actualInputChars,
     tokenMode,
     tokenMethod,
-    summary: economy.summary || `사용자 원문은 ${userRequest}이고 agent 입력 후보는 ${actualInput}입니다. 실제 pair delta는 같은 work intent의 default-codex 관측 입력 n과 scopelease-codex 관측 입력 m을 비교해 계산하고, 양수일 때만 절감률입니다.`,
+    summary: displayText(economy.summary) || `The user request is ${userRequest}; the agent input candidate is ${actualInput}. The real pair delta compares observed default-codex input n with scopelease-codex input m for the same work intent, and only positive deltas count as savings.`,
     field,
     actualField: economy.actualInput?.field || "codexInput.text",
     visualGraph,
     omittedSummary,
-    budget: economy.budgetSummary || (economy.fitsBudget ? `예산 ${budget} 안에 들어옵니다.` : `예산 ${budget}보다 ${overBudget} 많습니다.`)
+    budget: displayText(economy.budgetSummary) || (economy.fitsBudget ? `fits within budget ${budget}` : `${overBudget} over budget ${budget}`)
   };
 }
 
-function formatTokenizer(tokenizer = {}, fallback = "fallback 계산") {
+function formatTokenizer(tokenizer = {}, fallback = "fallback estimate") {
   if (!tokenizer || !Object.keys(tokenizer).length) return fallback;
   const method = tokenizer.method || (tokenizer.exact ? "tiktoken" : "fallback");
   const encoding = tokenizer.encoding ? `:${tokenizer.encoding}` : "";
@@ -3446,16 +3827,16 @@ function formatTokenizer(tokenizer = {}, fallback = "fallback 계산") {
 
 function formatOmittedSummary(omitted = {}) {
   const labels = {
-    changedFiles: "변경 파일",
-    changedSymbols: "변경 심볼",
-    priorityContext: "우선순위 항목",
-    policyHits: "정책 항목"
+    changedFiles: "changed files",
+    changedSymbols: "changed symbols",
+    priorityContext: "priority context items",
+    policyHits: "policy hits"
   };
   const parts = Object.entries(omitted || {})
     .filter(([, count]) => Number(count || 0) > 0)
-    .map(([key, count]) => `${labels[key] || key} ${Number(count).toLocaleString("ko-KR")}개`);
-  if (!parts.length) return "input에서 생략된 우선순위 항목은 없습니다.";
-  return `input을 가볍게 유지하려고 ${parts.join(", ")}를 상세 목록에서 제외했습니다. 전체 그래프와 원본 파일은 화면과 저장소에 남아 있습니다.`;
+    .map(([key, count]) => `${Number(count).toLocaleString("en-US")} ${labels[key] || key}`);
+  if (!parts.length) return "No priority items are omitted from the input summary.";
+  return `${parts.join(", ")} are omitted from the detailed list to keep the input compact. The full graph and source files remain local for inspection.`;
 }
 
 function formatTokenCount(value) {
@@ -3558,8 +3939,8 @@ function trackGraphDelta(graph, positions, analysis, eventReason) {
   knownNodeFingerprints = fingerprints;
   lastAnalysisSignature = signature;
   pruneTransientMarkers();
-  if (added || updated || removed) setActivity(`추가 ${added} / 변경 ${updated} / 삭제 ${removed}`, true);
-  else if (eventReason && !["render", "layout_reset", "drag", "drag_start", "drag_end", "marker_cleanup"].includes(eventReason)) setActivity("실시간 반영", true);
+  if (added || updated || removed) setActivity(`Added ${added} / updated ${updated} / removed ${removed}`, true);
+  else if (eventReason && !["render", "layout_reset", "drag", "drag_start", "drag_end", "marker_cleanup"].includes(eventReason)) setActivity("Live update applied", true);
   scheduleMarkerCleanup();
 }
 
@@ -3627,12 +4008,12 @@ function scheduleMarkerCleanup() {
 
 function setActivity(text, active = false) {
   if (!elements.activityLabel) return;
-  elements.activityLabel.textContent = text;
+  elements.activityLabel.textContent = translateUiText(text);
   elements.activityLabel.classList.toggle("active", active);
   if (!active) return;
   window.clearTimeout(setActivity.timer);
   setActivity.timer = window.setTimeout(() => {
-    elements.activityLabel.textContent = "실시간 연결";
+    elements.activityLabel.textContent = translateUiText("Live connected");
     elements.activityLabel.classList.remove("active");
   }, 3200);
 }
@@ -3640,10 +4021,11 @@ function setActivity(text, active = false) {
 function renderError(message) {
   if (!elements.decisionPanel) return;
   elements.decisionPanel.innerHTML = `
-    <strong>경로 연결 실패</strong>
+    <strong>Path connection failed</strong>
     <span>${escapeHtml(message)}</span>
-    <span>로컬에 존재하는 폴더 경로를 입력해야 합니다. 예: /Users/name/project 또는 ~/project</span>
+    <span>Enter a local folder path that exists, such as /Users/name/project or ~/project.</span>
   `;
+  applyLocaleToDocument();
 }
 
 function startNodeDrag(event, node, analysis) {
@@ -3714,7 +4096,7 @@ function handlePointerUp() {
   dragState = null;
   document.body.classList.remove("dragging-node");
   document.body.classList.remove("panning-graph");
-  if (suppressNextClick) setActivity(endedType === "pan" ? "화면 이동 적용" : "수동 배치 적용", true);
+  if (suppressNextClick) setActivity(endedType === "pan" ? "Pan applied" : "Manual layout applied", true);
   if (currentAnalysis) render(currentAnalysis, "drag_end");
 }
 
@@ -3758,7 +4140,7 @@ function zoomBy(factor, anchorEvent = null) {
   viewportState.panX = screen.x - graph.x * nextZoom;
   viewportState.panY = screen.y - graph.y * nextZoom;
   viewportInitialized = true;
-  setActivity(`확대 ${Math.round(nextZoom * 100)}%`, true);
+  setActivity(`Zoom ${Math.round(nextZoom * 100)}%`, true);
   if (currentAnalysis) render(currentAnalysis, "zoom");
 }
 
@@ -3846,9 +4228,125 @@ function userPanelHeader(title, meta = "") {
   return `
     <div class="user-panel-head">
       <strong>${escapeHtml(title)}</strong>
-      <span>${escapeHtml(meta)}</span>
+      <span>${escapeHtml(displayText(meta))}</span>
     </div>
   `;
+}
+
+function displayText(value = "") {
+  if (value == null) return "";
+  if (Array.isArray(value)) return value.map((item) => displayText(item)).filter(Boolean).join(", ");
+  const text = String(value);
+  if (!text) return "";
+  const exact = {
+    "낮음": "Low",
+    "중간": "Medium",
+    "높음": "High",
+    "치명적": "Critical",
+    "자동 기록": "Auto-log",
+    "감사 기록": "Audit log",
+    "담당자 리뷰": "Owner review",
+    "사람 리뷰": "Human review",
+    "결정권자 리뷰": "Senior review",
+    "승인권자 승인": "Approver review",
+    "차단": "Blocked",
+    "추가 승인 없음": "No extra approval",
+    "적용 및 체크포인트 가능": "Apply and checkpoint allowed",
+    "적용 가능, 체크포인트는 별도": "Apply allowed, checkpoint separate",
+    "초안 작성만 가능": "Prepare patch only",
+    "자동 작업 차단": "Automated work blocked",
+    "컨텍스트 팩 생성": "Create context pack",
+    "영향 그래프 표시": "Show impact graph",
+    "리뷰용 패치 준비": "Prepare review patch",
+    "자동 적용": "Auto-apply patch",
+    "리뷰 전 기준점 갱신": "Checkpoint before review",
+    "분석 결과를 기다리는 중입니다.": "Waiting for analysis.",
+    "결정 카드가 준비되면 권한 경계를 보여줍니다.": "The decision card will show the authority boundary.",
+    "결정권자": "Senior reviewer",
+    "결정권자 리뷰 필요": "Senior review required",
+    "기준 입력 대기": "Waiting for baseline input",
+    "적용 여부와 범위를 한 번만 결정합니다.": "Decide once whether to apply and what scope is allowed.",
+    "아래 ScopeLease 분석을 기준으로 전역 코드검토를 하고, 필요한 수정은 직접 적용한다.": "Review the whole codebase using the ScopeLease analysis below, and apply needed fixes directly.",
+    "같은 work intent의 default-codex 입력 n과 scopelease-codex 입력 m이 모두 관측되면 pair delta를 계산합니다. 양수일 때만 절감률입니다.": "When both default-codex input n and scopelease-codex input m are observed for the same work intent, ScopeLease calculates the pair delta. Only positive deltas count as savings.",
+    "사람이 결정해야 하는 변경": "human review required",
+    "기준점 이후 변경됨": "changed since baseline",
+    "변경 파일을 호출함": "imports a changed file",
+    "변경 파일을 검증하는 테스트": "test covers a changed file",
+    "변경 심볼을 언급하는 문서": "doc mentions a changed symbol"
+  };
+  let result = exact[text] || text;
+  const replacements = [
+    [/결정권자/g, "Senior reviewer"],
+    [/권자/g, "reviewer"],
+    [/(\d+)개 추가/g, "$1 added"],
+    [/(\d+)개 변경/g, "$1 changed"],
+    [/(\d+)개 삭제/g, "$1 deleted"],
+    [/(\d+)개 심볼 감지/g, "$1 symbols detected"],
+    [/높음 위험/g, "high risk"],
+    [/중간 위험/g, "medium risk"],
+    [/낮음 위험/g, "low risk"],
+    [/(budget \S+)보다 (\S+) 많습니다\.?/g, "$2 over $1"],
+    [/자동 적용과 체크포인트가 모두 허용됩니다\./g, "Automatic apply and checkpoint are both allowed."],
+    [/자동 적용은 가능하지만 체크포인트는 사용자가 확인한 뒤 갱신합니다\./g, "Automatic apply is allowed; checkpoint updates still require user confirmation."],
+    [/자동 적용은 막고, 리뷰용 초안과 근거 정리만 허용합니다\./g, "Automatic apply is blocked; only a review draft and evidence summary are allowed."],
+    [/자동 작업을 진행하지 않습니다\./g, "No automated work should proceed."],
+    [/승인권자가 보기 전까지 자동 적용하지 않습니다\./g, "Do not auto-apply before approver review."],
+    [/패치는 초안까지만 만들고 결정권자 리뷰가 필요합니다\./g, "Prepare a patch draft only; senior review is required."],
+    [/담당자 리뷰 후 기준점을 갱신합니다\./g, "Update the checkpoint after owner review."],
+    [/낮은 위험 변경은 기록하면서 적용할 수 있습니다\./g, "Low-risk changes can be applied with an audit trail."],
+    [/[가-힣]*발 작업으로 해석했고, /g, "Interpreted as development work, "],
+    [/결정권자 리뷰 필요/g, "Senior review required"],
+    [/ScopeLease context와 authority 경계를 준비하려는 요청입니다\.?/g, "This request is preparing ScopeLease context and authority boundaries."],
+    [/context와/g, "context and"],
+    [/경계를/g, "boundaries"],
+    [/준비하려는 요청입니다\.?/g, "preparation request."],
+    [/위험 이유가 실제 요청 의도와 맞는지만 확인/g, "Check whether the risk reason matches the actual request intent"],
+    [/모호하면 prepare_only로 초안\/근거만 남기기/g, "if ambiguous, use prepare_only and leave only a draft/evidence"],
+    [/scope 밖 files, 네트워크, 체크포인트는 새 판단으로 분리/g, "files outside scope, network access, and checkpoints require a new decision"],
+    [/scope 밖 files/g, "files outside scope"],
+    [/밖/g, "outside"],
+    [/checkpoint는 a new decision으로 분리/g, "checkpoint requires a new decision"],
+    [/checkpoint는/g, "checkpoint"],
+    [/는 a new decision으로 분리/g, " require a new decision"],
+    [/는 a new decision/g, " require a new decision"],
+    [/으로 분리/g, " require separation"],
+    [/네트워크/g, "network"],
+    [/체크포인트는/g, "checkpoint"],
+    [/체크포인트/g, "checkpoint"],
+    [/새 판단/g, "a new decision"],
+    [/분석 결과가 준비되면/g, "When analysis is ready"],
+    [/입력 후보/g, "input candidate"],
+    [/사용자 원문/g, "user request"],
+    [/agent 입력 후보/g, "agent input candidate"],
+    [/화면용 그래프 JSON/g, "visual graph JSON"],
+    [/원본 파일 본문/g, "raw file bodies"],
+    [/agent 입력/g, "agent input"],
+    [/위험도/g, "risk"],
+    [/라우트/g, "route"],
+    [/권한/g, "authority"],
+    [/자동화/g, "automation"],
+    [/예산/g, "budget"],
+    [/생략/g, "omitted"],
+    [/허용/g, "allowed"],
+    [/차단/g, "blocked"],
+    [/파일/g, "files"],
+    [/명령/g, "commands"],
+    [/범위/g, "scope"],
+    [/기본/g, "default"],
+    [/멈춤/g, "stop"],
+    [/아직 없음/g, "none yet"],
+    [/없음/g, "none"],
+    [/후보/g, "candidate"],
+    [/결정/g, "decision"],
+    [/개 이벤트/g, " events"],
+    [/개/g, ""]
+  ];
+  for (let pass = 0; pass < 2; pass += 1) {
+    for (const [pattern, replacement] of replacements) {
+      result = result.replace(pattern, replacement);
+    }
+  }
+  return result;
 }
 
 function escapeHtml(value) {
@@ -3911,7 +4409,7 @@ function connectEvents() {
         liveStatus = {
           connected: false,
           mode: "reconnect",
-          reason: "서버 대기",
+          reason: "server waiting",
           at: new Date().toISOString()
         };
       }
@@ -3922,7 +4420,7 @@ function connectEvents() {
     liveStatus = {
       connected: false,
       mode: "reconnect",
-      reason: "서버 대기",
+      reason: "server waiting",
       at: new Date().toISOString()
     };
     updateLiveIndicators();

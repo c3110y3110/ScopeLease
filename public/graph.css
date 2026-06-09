@@ -172,21 +172,25 @@ textarea {
 
 .result-frame {
   top: 88px;
-  bottom: 18px;
+  bottom: 72px;
   left: 18px;
-  width: min(390px, 30vw);
+  width: min(378px, 29vw);
   min-height: 0;
+  max-height: calc(100vh - 160px);
   overflow: auto;
+  overscroll-behavior: contain;
   padding: 14px;
 }
 
 .decision-panel {
   top: 88px;
   right: 18px;
-  bottom: 18px;
-  width: min(520px, 38vw);
+  bottom: 72px;
+  width: min(500px, 36vw);
   min-height: 0;
+  max-height: calc(100vh - 160px);
   overflow: auto;
+  overscroll-behavior: contain;
   padding: 14px;
 }
 
@@ -201,7 +205,8 @@ textarea {
 }
 
 .graph-controls button,
-.scope-toggle {
+.scope-toggle,
+.language-toggle button {
   min-width: 74px;
   height: 32px;
   border: 1px solid rgba(142, 174, 255, 0.3);
@@ -216,13 +221,16 @@ textarea {
 .graph-controls button:hover,
 .graph-controls button[aria-pressed="true"],
 .scope-toggle:hover,
-.scope-toggle[aria-pressed="true"] {
+.scope-toggle[aria-pressed="true"],
+.language-toggle button:hover,
+.language-toggle button[aria-pressed="true"] {
   border-color: rgba(126, 224, 183, 0.45);
   color: var(--text);
 }
 
 .graph-controls button[aria-pressed="false"],
-.scope-toggle[aria-pressed="false"] {
+.scope-toggle[aria-pressed="false"],
+.language-toggle button[aria-pressed="false"] {
   opacity: 0.74;
 }
 
@@ -230,6 +238,21 @@ textarea {
   flex: 0 0 auto;
   min-width: 74px;
   height: 30px;
+}
+
+.language-toggle {
+  display: inline-flex;
+  gap: 4px;
+}
+
+.graph-language-toggle {
+  flex: 0 0 auto;
+}
+
+.language-toggle button {
+  min-width: 46px;
+  height: 28px;
+  padding: 0 8px;
 }
 
 .sidecar-mode .hud {
@@ -322,13 +345,13 @@ textarea {
 }
 
 .user-panel-head span {
-  overflow: hidden;
+  min-width: 0;
+  overflow: visible;
   color: var(--muted);
   font-size: 12px;
   line-height: 1.25;
   text-align: right;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  overflow-wrap: anywhere;
 }
 
 .user-kpi-grid,
@@ -345,7 +368,7 @@ textarea {
 
 .user-metric-grid,
 .user-boundary-grid {
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(138px, 1fr));
 }
 
 .user-kpi-grid span,
@@ -377,11 +400,11 @@ textarea {
 .user-request-card strong,
 .user-decision-callout strong {
   display: block;
-  overflow: hidden;
+  overflow: visible;
   color: var(--text);
   font-size: 18px;
   line-height: 1.22;
-  text-overflow: ellipsis;
+  overflow-wrap: anywhere;
 }
 
 .user-request-card strong,
@@ -420,7 +443,7 @@ textarea {
 .guard-evidence-panel,
 .agent-judgment-panel {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(148px, 1fr));
   gap: 8px;
   border: 1px solid rgba(126, 224, 183, 0.2);
   border-radius: 7px;
@@ -444,6 +467,7 @@ textarea {
   color: var(--soft);
   font-size: 12px;
   line-height: 1.35;
+  overflow-wrap: anywhere;
 }
 
 .guard-evidence-panel b,

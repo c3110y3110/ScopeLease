@@ -17,6 +17,9 @@ pnpm-debug.log*
 .claude/
 .mcp.json
 *.local.toml
+*.local.json
+*.local.yaml
+*.local.yml
 
 # Electron/build/package outputs
 dist/
@@ -56,6 +59,11 @@ releases/
 # Logs, caches, coverage, and temporary workspaces
 *.log
 coverage/
+lcov.info
+*.lcov
+test-results/
+playwright-report/
+junit.xml
 .nyc_output/
 .cache/
 .eslintcache
@@ -63,6 +71,7 @@ coverage/
 .turbo/
 .next/
 .vite/
+*.tsbuildinfo
 .tmp/
 tmp/
 temp/
@@ -70,6 +79,10 @@ temp/
 *.temp
 scopelease-pair-worktrees/
 .scopelease-workspace-scope.json
+
+# Language/runtime caches
+__pycache__/
+*.py[cod]
 
 # Local benchmark/data checkouts
 benchmarks/
