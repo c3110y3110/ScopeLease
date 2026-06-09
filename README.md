@@ -8,6 +8,23 @@ The primary surface is CLI, MCP, and hooks. The browser and Electron sidecars ar
 
 주 사용 표면은 CLI, MCP, hook입니다. 브라우저/Electron sidecar는 graph 근거, 승인 상태, 실험 경계를 눈으로 확인하는 보조 화면입니다.
 
+## Product Family / 제품군
+
+ScopeLease is organized as a small product family around one core idea: graph-scoped delegation for coding agents.
+
+ScopeLease는 하나의 핵심 아이디어, 즉 coding agent 위임을 graph 범위로 제한하고 검증하는 제품군으로 정리됩니다.
+
+| Product surface | Ships as | Purpose | Current status |
+| --- | --- | --- | --- |
+| ScopeLease Core | `src/core/*`, `src/analyzer.js`, `src/cli.js` | Build the repo graph, frontiers, decision cards, guard verdicts, approval leases, and evidence artifacts. | Implemented and covered by `npm test`. |
+| Agent Connectors | Codex MCP/hooks, Claude MCP/hooks, `guarded-exec` | Attach ScopeLease to agent tool execution before broad reads, edits, shell commands, or checkpoint actions. | Codex path is primary; Claude path is project-local and command-oriented. |
+| Sidecar Dashboard | `npm run app`, `public/*` | Inspect overview, boundaries, decisions, evidence, agent input, and full KG screens in English or Korean. | Implemented as a local browser sidecar. |
+| Desktop Sidecar | `npm run desktop`, `src/desktop/*` | Open the same local evidence console as an Electron app. | Optional local surface, not the main coding UI. |
+| Evaluation Harness | `examples/evaluation/*`, `scripts/*`, `src/core/*bench*` | Run bounded review, permission, C0-C3, pair-run, and source-archive checks. | Implemented for named protocols, not a universal benchmark claim. |
+| Research Package | `docs/*`, `examples/evaluation/frozen-evidence/*`, `patent-package/*` | Preserve claim boundaries, frozen evidence, patent/CHI framing, and rerun protocols. | Source-of-truth docs are current; older dated docs are supporting analysis. |
+
+운영 관점에서는 `Core -> Agent Connectors -> Sidecar -> Evaluation -> Research Package` 순서로 보면 됩니다. 외부 사용자는 먼저 Core/Agent Connectors를 실행하고, Sidecar로 경계를 확인하며, Evaluation/Research 문서는 claim을 검증할 때 읽습니다.
+
 ## What It Does / 하는 일
 
 - Builds a CodeGraph-style repository graph from files, symbols, imports, tests, docs, routes, and policy hits.
@@ -23,6 +40,26 @@ The primary surface is CLI, MCP, and hooks. The browser and Electron sidecars ar
 - `scopelease_guard`, `scopelease_approve`, signed approval lease, Codex hook, `scopelease guarded-exec`로 Bash/write action을 실행 전에 검사합니다.
 - 각 대상 repo의 상태를 `.decision/`, `.codex/`, `.scopelease/`, `.claude/`, `.mcp.json`에 격리합니다.
 - visual graph size, agent-visible context, command-reported token total, optional provider usage를 섞지 않고 경계와 함께 보고합니다.
+
+## ScopeLease vs CodeGraph-Style Tools / CodeGraph류 도구와 차이
+
+ScopeLease can consume and build CodeGraph-style repository structure, but it is not positioned as "a better code graph memory." The product boundary is delegation control.
+
+ScopeLease는 CodeGraph-style repository structure를 만들고 사용할 수 있지만, 포지션은 "더 좋은 code graph memory"가 아닙니다. 제품 경계는 delegation control입니다.
+
+| Dimension | CodeGraph-style retrieval tools | ScopeLease |
+| --- | --- | --- |
+| Primary goal | Find relevant code faster. | Bound what an agent may read, edit, run, approve, and stop on. |
+| Graph role | Retrieval memory or search index. | Operational boundary for read/review/permission/stop frontiers. |
+| Agent input | Often selected files, chunks, or graph neighbors. | Compact `agentContract`, `readPlan`, `avoidPlan`, and `graphQueryHints`. |
+| Human control | Usually outside the graph retrieval layer. | Signed approval leases and `scopelease_guard` are part of the core path. |
+| Enforcement | Usually advisory unless integrated elsewhere. | Pre-execution hooks or `guarded-exec` can block ask/deny actions before execution. |
+| Evidence | Retrieval quality and context reduction. | Retrieval, permission, review-boundary, lease reuse, stop-frontier, and paired context evidence. |
+| Claim boundary | Graph retrieval efficiency. | Graph-scoped delegation with explicit measurement boundaries. |
+
+The safe comparison is: ScopeLease uses CodeGraph-style structure as one input to a broader delegation layer. It should not claim universal superiority over graph-memory tools, provider billing reduction, hidden reasoning-token reduction, or default-agent token savings without paired same-work-intent evidence.
+
+안전한 비교는 다음입니다. ScopeLease는 CodeGraph-style structure를 더 넓은 delegation layer의 입력으로 사용합니다. paired same-work-intent evidence 없이 graph-memory tool 전반에 대한 우월성, provider billing 절감, hidden reasoning-token 절감, default-agent token 절감을 주장하지 않습니다.
 
 ## Install From GitHub / GitHub에서 내려받기
 
@@ -383,6 +420,26 @@ git status --short --ignored
 git check-ignore -v .decision .codex .scopelease node_modules scopelease_clean_source.zip
 ```
 
+## Open-Source Product Readiness / 오픈소스 제품 준비도
+
+This repository is now organized enough for a source release and reproducible local use. To present it like a mature open-source product, the remaining work is explicit and tracked in [docs/open-source-product-readiness.md](docs/open-source-product-readiness.md).
+
+이 저장소는 source release와 local 재현 실행 기준으로는 정리되어 있습니다. 성숙한 오픈소스 제품처럼 보이게 하려면 남은 작업은 [docs/open-source-product-readiness.md](docs/open-source-product-readiness.md)에 명시했습니다.
+
+Current status:
+
+현재 상태:
+
+- Ready: clone/install/test flow, local app flow, Codex/Claude attachment guidance, bilingual sidecar screenshots, bounded evidence, source archive verification, contribution/security/changelog starter docs.
+- Not yet finalized: license choice, public support policy, release cadence, GitHub Actions CI, issue/PR templates, npm publishing decision, signed/notarized desktop release.
+
+- 준비됨: clone/install/test 흐름, local app 흐름, Codex/Claude attach 안내, 한/영 sidecar screenshot, bounded evidence, source archive verification, contribution/security/changelog starter 문서.
+- 미확정: license 선택, public support policy, release cadence, GitHub Actions CI, issue/PR template, npm publish 여부, signed/notarized desktop release.
+
+Do not accept outside contributions until the repository owner chooses a license and contribution terms.
+
+저장소 소유자가 license와 contribution 조건을 선택하기 전에는 외부 contribution을 받지 않는 것이 안전합니다.
+
 ## Source Archive / Source ZIP
 
 Treat `scopelease_clean_source.zip` as a release or paper supplement artifact, not normal source. Regenerate and verify it before uploading as a GitHub Release asset:
@@ -451,6 +508,6 @@ ScopeLease는 repo-local 상태만 씁니다.
 
 ## More Detail / 자세한 문서
 
-Start with [docs/README.md](docs/README.md), then read [docs/current-product.md](docs/current-product.md), [docs/current-research-memory.md](docs/current-research-memory.md), [docs/architecture.md](docs/architecture.md), and [docs/codex-usage-meter.md](docs/codex-usage-meter.md).
+Start with [docs/README.md](docs/README.md), then read [docs/current-product.md](docs/current-product.md), [docs/open-source-product-readiness.md](docs/open-source-product-readiness.md), [docs/current-research-memory.md](docs/current-research-memory.md), [docs/architecture.md](docs/architecture.md), and [docs/codex-usage-meter.md](docs/codex-usage-meter.md).
 
-먼저 [docs/README.md](docs/README.md)를 보고, 이어서 [docs/current-product.md](docs/current-product.md), [docs/current-research-memory.md](docs/current-research-memory.md), [docs/architecture.md](docs/architecture.md), [docs/codex-usage-meter.md](docs/codex-usage-meter.md)를 확인하면 됩니다.
+먼저 [docs/README.md](docs/README.md)를 보고, 이어서 [docs/current-product.md](docs/current-product.md), [docs/open-source-product-readiness.md](docs/open-source-product-readiness.md), [docs/current-research-memory.md](docs/current-research-memory.md), [docs/architecture.md](docs/architecture.md), [docs/codex-usage-meter.md](docs/codex-usage-meter.md)를 확인하면 됩니다.
